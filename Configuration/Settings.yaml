@@ -24,7 +24,7 @@ Neos:
       resources:
         javascript:
           'UpAssist.Neos.EditorNotifications:Plugin':
-            resource: '${"resource://UpAssist.Neos.EditorNotifications/Public/JavaScript/NotificationPlugin/Plugin.js"}'
+            resource: 'resource://UpAssist.Neos.EditorNotifications/Public/JavaScript/NotificationPlugin/Plugin.js'
   Flow:
     security:
       authentication:
