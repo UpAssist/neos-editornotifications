@@ -8,8 +8,8 @@
     var started = false;
 
     function getCsrfToken() {
-        var userMenu = document.querySelector(".neos-user-menu[data-csrf-token]");
-        return userMenu ? userMenu.getAttribute("data-csrf-token") || "" : "";
+        var el = document.querySelector("[data-csrf-token]");
+        return el ? el.getAttribute("data-csrf-token") || "" : "";
     }
 
     function isContentModule() {
