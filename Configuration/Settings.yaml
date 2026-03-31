@@ -1,0 +1,34 @@
+Neos:
+  Neos:
+    modules:
+      administration:
+        submodules:
+          notifications:
+            label: 'UpAssist.Neos.EditorNotifications:Main:module.label'
+            controller: UpAssist\Neos\EditorNotifications\Controller\Backend\Module\NotificationModuleController
+            description: 'UpAssist.Neos.EditorNotifications:Main:module.description'
+            icon: 'fas fa-bell'
+            mainStylesheet: 'Lite'
+            privilegeTarget: 'UpAssist.Neos.EditorNotifications:Backend.Module.Administration.Notifications'
+            additionalResources:
+              javaScripts:
+                'UpAssist.Neos.EditorNotifications:Module':
+                  resource: 'resource://UpAssist.Neos.EditorNotifications/Public/JavaScript/Module/Module.js'
+              styleSheets:
+                'UpAssist.Neos.EditorNotifications:Module':
+                  resource: 'resource://UpAssist.Neos.EditorNotifications/Public/Styles/Module.css'
+    userInterface:
+      translation:
+        autoInclude:
+          UpAssist.Neos.EditorNotifications:
+            - Main
+    Ui:
+      resources:
+        javascript:
+          'UpAssist.Neos.EditorNotifications:Plugin':
+            resource: '${"resource://UpAssist.Neos.EditorNotifications/Public/JavaScript/NotificationPlugin/Plugin.js"}'
+  Flow:
+    mvc:
+      routes:
+        'UpAssist.Neos.EditorNotifications':
+          position: 'before Neos.Neos'

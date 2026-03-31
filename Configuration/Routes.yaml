@@ -1,0 +1,7 @@
+-
+  name: 'Editor Notifications API'
+  uriPattern: 'neos/notifications/api/{@action}'
+  defaults:
+    '@package': 'UpAssist.Neos.EditorNotifications'
+    '@controller': 'NotificationApi'
+    '@format': 'json'

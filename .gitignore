@@ -1,0 +1,10 @@
+/node_modules/
+/vendor/
+/Build/
+/Data/
+/Packages/
+/coverage/
+/.idea/
+/.vscode/
+*.log
+*.cache

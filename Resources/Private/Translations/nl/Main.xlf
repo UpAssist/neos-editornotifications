@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xliff version="1.0">
+    <file original="" product-name="UpAssist.Neos.EditorNotifications" source-language="en" target-language="nl" datatype="plaintext">
+        <body>
+            <trans-unit id="module.label">
+                <source>Editor notifications</source>
+                <target>Redacteurnotificaties</target>
+            </trans-unit>
+            <trans-unit id="module.description">
+                <source>Manage backend notifications for editors</source>
+                <target>Beheer backendnotificaties voor redacteurs</target>
+            </trans-unit>
+        </body>
+    </file>
+</xliff>

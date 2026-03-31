@@ -1,0 +1,24 @@
+privilegeTargets:
+  'Neos\Flow\Security\Authorization\Privilege\Method\MethodPrivilege':
+    'UpAssist.Neos.EditorNotifications:ManageNotifications':
+      matcher: 'method(UpAssist\Neos\EditorNotifications\Controller\Backend\Module\NotificationModuleController->.*Action())'
+    'UpAssist.Neos.EditorNotifications:ReadNotifications':
+      matcher: 'method(UpAssist\Neos\EditorNotifications\Controller\Api\NotificationApiController->.*Action())'
+
+  'Neos\Neos\Security\Authorization\Privilege\ModulePrivilege':
+    'UpAssist.Neos.EditorNotifications:Backend.Module.Administration.Notifications':
+      matcher: 'administration/notifications'
+
+roles:
+  'Neos.Neos:Administrator':
+    privileges:
+      - privilegeTarget: 'UpAssist.Neos.EditorNotifications:Backend.Module.Administration.Notifications'
+        permission: GRANT
+      - privilegeTarget: 'UpAssist.Neos.EditorNotifications:ManageNotifications'
+        permission: GRANT
+      - privilegeTarget: 'UpAssist.Neos.EditorNotifications:ReadNotifications'
+        permission: GRANT
+  'Neos.Neos:Editor':
+    privileges:
+      - privilegeTarget: 'UpAssist.Neos.EditorNotifications:ReadNotifications'
+        permission: GRANT

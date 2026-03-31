@@ -1,0 +1,91 @@
+prototype(UpAssist.Neos.EditorNotifications:Backend.Index) < prototype(Neos.Fusion:Component) {
+    filter = ${filter}
+    filters = ${filters}
+    notifications = ${notifications}
+    page = ${page}
+    pageCount = ${pageCount}
+    pageNumbers = ${pageNumbers}
+    totalCount = ${totalCount}
+    flashMessages = ${flashMessages}
+
+    renderer = afx`
+        <div class="est-notifications-module">
+            <header class="est-notifications-header">
+                <div>
+                    <h1>Redacteurnotificaties</h1>
+                    <p>Beheer centrale mededelingen voor redacteurs in de content module.</p>
+                </div>
+                <Neos.Fusion:Link.Action href.action="new" class="neos-button neos-button-primary">Nieuwe notificatie</Neos.Fusion:Link.Action>
+            </header>
+
+            <UpAssist.Neos.EditorNotifications:Component.FlashMessages flashMessages={props.flashMessages} />
+
+            <div class="est-notifications-toolbar">
+                <div class="est-notifications-filters">
+                    <Neos.Fusion:Loop items={props.filters}>
+                        <Neos.Fusion:Link.Action
+                            href.action="index"
+                            href.arguments.filter={item.value}
+                            class={'neos-button ' + (props.filter == item.value ? 'neos-button-primary' : '')}
+                        >
+                            {item.label}
+                        </Neos.Fusion:Link.Action>
+                    </Neos.Fusion:Loop>
+                </div>
+                <span class="est-notifications-count">{props.totalCount} items</span>
+            </div>
+
+            <div class="est-notifications-tableWrap">
+                <table class="neos-table est-notifications-table">
+                    <thead>
+                        <tr>
+                            <th>Titel</th>
+                            <th>Status</th>
+                            <th>Publicatie</th>
+                            <th>Zichtbaarheid</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <Neos.Fusion:Loop items={props.notifications}>
+                            <tr>
+                                <td>
+                                    <strong>{item.title}</strong>
+                                    <div class="est-notifications-muted">Aangemaakt op {item.createdAt}</div>
+                                </td>
+                                <td>{item.status}</td>
+                                <td>{item.publishedAt}</td>
+                                <td>{item.showWindow}</td>
+                                <td class="est-notifications-actions">
+                                    <Neos.Fusion:Link.Action
+                                        href.action="edit"
+                                        href.arguments.notificationIdentifier={item.identifier}
+                                        class="neos-button"
+                                    >
+                                        Bewerken
+                                    </Neos.Fusion:Link.Action>
+                                </td>
+                            </tr>
+                        </Neos.Fusion:Loop>
+                    </tbody>
+                </table>
+                <div class="est-notifications-empty" @if.empty={Array.length(props.notifications) == 0}>
+                    Geen notificaties gevonden voor dit filter.
+                </div>
+            </div>
+
+            <div class="est-notifications-pagination" @if.hasPages={props.pageCount > 1}>
+                <Neos.Fusion:Loop items={props.pageNumbers}>
+                    <Neos.Fusion:Link.Action
+                        href.action="index"
+                        href.arguments.filter={props.filter}
+                        href.arguments.page={item}
+                        class={'neos-button ' + (props.page == item ? 'neos-button-primary' : '')}
+                    >
+                        {item}
+                    </Neos.Fusion:Link.Action>
+                </Neos.Fusion:Loop>
+            </div>
+        </div>
+    `
+}

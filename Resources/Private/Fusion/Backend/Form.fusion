@@ -1,0 +1,143 @@
+prototype(UpAssist.Neos.EditorNotifications:Backend.Form) < prototype(Neos.Fusion:Component) {
+    mode = ${mode}
+    notification = ${notification}
+    formData = ${formData}
+    validationErrors = ${validationErrors}
+    flashMessages = ${flashMessages}
+
+    renderer = afx`
+        <div class="est-notifications-module">
+            <header class="est-notifications-header">
+                <div>
+                    <h1>{props.mode == 'new' ? 'Nieuwe notificatie' : props.notification.title}</h1>
+                    <p>Schrijf een duidelijk updatebericht voor redacteurs, inclusief inline screenshots.</p>
+                </div>
+                <Neos.Fusion:Link.Action href.action="index" class="neos-button">Terug naar overzicht</Neos.Fusion:Link.Action>
+            </header>
+
+            <UpAssist.Neos.EditorNotifications:Component.FlashMessages flashMessages={props.flashMessages} />
+
+            <div class="neos-message neos-message-error" @if.hasValidationErrors={Array.length(props.validationErrors) > 0}>
+                <strong>Controleer het formulier</strong>
+                <ul>
+                    <Neos.Fusion:Loop items={props.validationErrors}>
+                        <li>{item}</li>
+                    </Neos.Fusion:Loop>
+                </ul>
+            </div>
+
+            <div class="est-notifications-formLayout">
+                <form
+                    method="post"
+                    class="est-notifications-form"
+                    data-notification-editor="true"
+                    data-preview-target="notification-preview"
+                >
+                    <Neos.Fusion:UriBuilder
+                        action={props.mode == 'new' ? 'create' : 'update'}
+                        arguments.notificationIdentifier={props.notification ? props.notification.identifier : null}
+                        @path="attributes.action"
+                    />
+                    <input type="hidden" name="__csrfToken" value={Security.csrfToken()} />
+                    <input type="hidden" name="notificationIdentifier" value={props.notification ? props.notification.identifier : ''} @if.hasNotification={props.notification} />
+
+                    <label class="est-field">
+                        <span>Titel</span>
+                        <input type="text" name="title" value={props.formData.title} required="required" />
+                    </label>
+
+                    <div class="est-field">
+                        <span>Bericht</span>
+                        <div class="est-editorToolbar">
+                            <button type="button" class="neos-button" data-editor-command="bold">Vet</button>
+                            <button type="button" class="neos-button" data-editor-command="italic">Cursief</button>
+                            <button type="button" class="neos-button" data-editor-command="insertUnorderedList">Lijst</button>
+                            <button type="button" class="neos-button" data-editor-command="insertOrderedList">Nummering</button>
+                            <button type="button" class="neos-button" data-editor-link="true">Link</button>
+                            <button type="button" class="neos-button" data-editor-image-url="true">Afbeelding URL</button>
+                            <button type="button" class="neos-button" data-editor-upload="true">Screenshot uploaden</button>
+                        </div>
+                        <div class="est-editor" contenteditable="true" data-editor-surface="true"></div>
+                        <textarea name="content" class="est-editorSource" data-editor-source="true">{props.formData.content}</textarea>
+                        <input type="file" accept="image/*" class="est-editorUpload" data-editor-upload-input="true" />
+                        <small>Je kunt tekst opmaken en inline screenshots toevoegen. Uploads worden als inline afbeelding in het bericht opgeslagen.</small>
+                    </div>
+
+                    <div class="est-fieldGrid">
+                        <label class="est-field">
+                            <span>Toon vanaf</span>
+                            <input type="datetime-local" name="showFrom" value={props.formData.showFrom} />
+                        </label>
+                        <label class="est-field">
+                            <span>Toon tot</span>
+                            <input type="datetime-local" name="showUntil" value={props.formData.showUntil} />
+                        </label>
+                    </div>
+
+                    <div class="est-notifications-formActions">
+                        <button type="submit" class="neos-button neos-button-primary">
+                            {props.mode == 'new' ? 'Opslaan' : 'Bijwerken'}
+                        </button>
+                        <button
+                            type="submit"
+                            formmethod="post"
+                            class="neos-button"
+                            @if.canPublish={props.notification}
+                        >
+                            <Neos.Fusion:UriBuilder
+                                action="publish"
+                                arguments.notificationIdentifier={props.notification ? props.notification.identifier : null}
+                                @path="attributes.formaction"
+                            />
+                            Publiceren
+                        </button>
+                        <button
+                            type="submit"
+                            formmethod="post"
+                            class="neos-button"
+                            @if.canUnpublish={props.notification && !props.notification.isDraft}
+                        >
+                            <Neos.Fusion:UriBuilder
+                                action="unpublish"
+                                arguments.notificationIdentifier={props.notification ? props.notification.identifier : null}
+                                @path="attributes.formaction"
+                            />
+                            Publicatie intrekken
+                        </button>
+                        <button
+                            type="submit"
+                            formmethod="post"
+                            class="neos-button"
+                            @if.canArchive={props.notification}
+                        >
+                            <Neos.Fusion:UriBuilder
+                                action="archive"
+                                arguments.notificationIdentifier={props.notification ? props.notification.identifier : null}
+                                @path="attributes.formaction"
+                            />
+                            Archiveren
+                        </button>
+                        <button
+                            type="submit"
+                            formmethod="post"
+                            class="neos-button neos-button-danger"
+                            @if.canDelete={props.notification && props.notification.isDraft}
+                        >
+                            <Neos.Fusion:UriBuilder
+                                action="delete"
+                                arguments.notificationIdentifier={props.notification ? props.notification.identifier : null}
+                                @path="attributes.formaction"
+                            />
+                            Verwijderen
+                        </button>
+                    </div>
+                </form>
+
+                <aside class="est-notifications-preview">
+                    <h2>Preview</h2>
+                    <div id="notification-preview" class="est-notifications-previewCanvas"></div>
+                </aside>
+            </div>
+        </div>
+    `
+}

@@ -1,0 +1,19 @@
+{
+    "name": "upassist/neos-editornotifications",
+    "description": "Backend notifications for Neos editors",
+    "type": "neos-package",
+    "require": {
+        "neos/flow": "*",
+        "neos/neos": "*"
+    },
+    "autoload": {
+        "psr-4": {
+            "UpAssist\\Neos\\EditorNotifications\\": "Classes/"
+        }
+    },
+    "extra": {
+        "neos": {
+            "package-key": "UpAssist.Neos.EditorNotifications"
+        }
+    }
+}

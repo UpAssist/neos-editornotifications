@@ -1,0 +1,14 @@
+prototype(UpAssist.Neos.EditorNotifications:Component.FlashMessages) < prototype(Neos.Fusion:Component) {
+    flashMessages = ${flashMessages}
+
+    renderer = afx`
+        <div class="est-notifications-flashMessages" @if.hasMessages={Array.length(props.flashMessages) > 0}>
+            <Neos.Fusion:Loop items={props.flashMessages}>
+                <div class={'neos-message ' + item.severity}>
+                    <strong>{item.title}</strong>
+                    <span @if.hasBody={item.message}>{item.message}</span>
+                </div>
+            </Neos.Fusion:Loop>
+        </div>
+    `
+}
