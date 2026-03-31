@@ -370,90 +370,87 @@
     transform: none;
 }
 
-/* ── Editor surface ───────────────────────────────────────────── */
+/* ── Markdown editor ──────────────────────────────────────────── */
 
-.est-editor {
+.est-notifications-module .est-editor--markdown {
     display: block;
     width: 100%;
+    max-width: 100%;
     min-height: 320px;
-    border: 1px solid #d2d6dc;
+    border: 1px solid #4a4a4a;
     border-radius: 0;
-    padding: 1.1rem 1.15rem;
-    background: #fff;
-    overflow: auto;
-    color: #243342;
+    padding: 1rem;
+    background: #1e1e1e;
+    color: #e0e0e0;
     line-height: 1.65;
-    position: relative;
+    font-family: "SFMono-Regular", "Consolas", "Liberation Mono", "Menlo", monospace;
+    font-size: 0.9rem;
+    resize: vertical;
     box-sizing: border-box;
+    -webkit-appearance: none;
+    appearance: none;
+    tab-size: 2;
 }
 
-.est-editor.is-empty::before {
-    content: attr(data-placeholder);
-    color: #97a3b1;
-    position: absolute;
-    top: 1.1rem;
-    left: 1.15rem;
-    right: 1.15rem;
-    pointer-events: none;
+.est-editor--markdown::placeholder {
+    color: #666;
 }
 
-.est-editor:focus {
+.est-editor--markdown:focus {
     outline: none;
     border-color: #1ea7fd;
     box-shadow: 0 0 0 1px #1ea7fd;
-    background: #fff;
 }
 
-.est-editor ul,
-.est-editor ol {
+/* ── Hidden file input ────────────────────────────────────────── */
+
+.est-hiddenFileInput {
+    display: none;
+}
+
+/* ── Preview list styles ─────────────────────────────────────── */
+
+.est-notifications-module .est-notifications-previewCanvas strong {
+    font-weight: 700;
+}
+
+.est-notifications-module .est-notifications-previewCanvas em {
+    font-style: italic;
+}
+
+.est-notifications-module .est-notifications-previewCanvas p {
+    margin: 0 0 0.5em;
+}
+
+.est-notifications-module .est-notifications-previewCanvas ul,
+.est-notifications-module .est-notifications-previewCanvas ol {
     margin: 0.5em 0;
     padding-left: 1.8em;
 }
 
-.est-editor ul {
+.est-notifications-module .est-notifications-previewCanvas ul,
+.est-notifications-module .est-notifications-previewCanvas ul li {
     list-style-type: disc;
 }
 
-.est-editor ol {
+.est-notifications-module .est-notifications-previewCanvas ol,
+.est-notifications-module .est-notifications-previewCanvas ol li {
     list-style-type: decimal;
 }
 
-.est-editor li {
-    margin-bottom: 0.2em;
+.est-notifications-module .est-notifications-previewCanvas li {
+    display: list-item;
+    margin: 0.2em 0;
 }
 
-.est-notifications-previewCanvas ul,
-.est-notifications-previewCanvas ol {
-    margin: 0.5em 0;
-    padding-left: 1.8em;
-}
-
-.est-notifications-previewCanvas ul {
-    list-style-type: disc;
-}
-
-.est-notifications-previewCanvas ol {
-    list-style-type: decimal;
-}
-
-.est-editor img,
-.est-notifications-previewCanvas img {
+.est-notifications-module .est-notifications-previewCanvas img {
     max-width: 100%;
     height: auto;
     border-radius: 0;
 }
 
-/* Hidden source textarea and file input — high specificity to override display */
-.est-notifications-module .est-editorSource,
-.est-notifications-module .est-editorUpload {
-    display: none;
-    visibility: hidden;
-    position: absolute;
-    width: 0;
-    height: 0;
-    overflow: hidden;
-    opacity: 0;
-    pointer-events: none;
+.est-notifications-module .est-notifications-previewCanvas a {
+    color: #00b5ff;
 }
 
 /* ── Preview ──────────────────────────────────────────────────── */

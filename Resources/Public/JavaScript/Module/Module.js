@@ -1,448 +1,254 @@
 (function () {
-    var MAX_IMAGE_WIDTH = 800;
-    var IMAGE_QUALITY = 0.8;
-
-    function initEditor(root) {
-        var editor = root.querySelector("[data-editor-surface]");
-        var source = root.querySelector("[data-editor-source]");
+    function initMarkdownEditor(root) {
+        var editor = root.querySelector("[data-md-editor]");
         var preview = document.getElementById(root.getAttribute("data-preview-target"));
         var previewTitle = document.getElementById(root.getAttribute("data-preview-title-target"));
         var previewMeta = document.getElementById(root.getAttribute("data-preview-meta-target"));
-        var uploadInput = root.querySelector("[data-editor-upload-input]");
         var titleInput = root.querySelector('input[name="moduleArguments[title]"]');
         var showFromInput = root.querySelector('input[name="moduleArguments[showFrom]"]');
         var showUntilInput = root.querySelector('input[name="moduleArguments[showUntil]"]');
 
-        if (!editor || !source || !preview) {
+        if (!editor || !preview) {
             return;
         }
 
-        var savedRange = null;
-        // nosec: source.value is admin-authored content from server, not user input
-        editor.innerHTML = source.value || editor.innerHTML || "";
         syncPreview();
 
-        // ── Selection helpers ────────────────────────────────────────
+        // ── Markdown toolbar actions ─────────────────────────────────
 
-        function saveSelection() {
-            var selection = window.getSelection();
-            if (!selection || selection.rangeCount === 0) {
-                return;
-            }
+        function wrapSelection(before, after) {
+            var start = editor.selectionStart;
+            var end = editor.selectionEnd;
+            var text = editor.value;
+            var selected = text.substring(start, end);
 
-            var range = selection.getRangeAt(0);
-            if (!editor.contains(range.commonAncestorContainer)) {
-                return;
-            }
-
-            savedRange = range.cloneRange();
-        }
-
-        function hasActiveEditorSelection() {
-            var selection = window.getSelection();
-            if (!selection || selection.rangeCount === 0) {
-                return false;
-            }
-
-            var range = selection.getRangeAt(0);
-            return editor.contains(range.commonAncestorContainer);
-        }
-
-        function restoreSelection() {
-            if (hasActiveEditorSelection()) {
-                return;
-            }
-
-            if (!savedRange) {
-                editor.focus();
-                return;
-            }
-
-            var selection = window.getSelection();
-            if (!selection) {
-                return;
-            }
-
-            selection.removeAllRanges();
-            selection.addRange(savedRange);
-        }
-
-        function getEditorRange() {
-            var selection = window.getSelection();
-            if (selection && selection.rangeCount > 0) {
-                var range = selection.getRangeAt(0);
-                if (editor.contains(range.commonAncestorContainer)) {
-                    return range;
-                }
-            }
-
-            if (savedRange && editor.contains(savedRange.commonAncestorContainer)) {
-                return savedRange.cloneRange();
-            }
-
-            var range = document.createRange();
-            range.selectNodeContents(editor);
-            range.collapse(false);
-            return range;
-        }
-
-        function selectRange(range) {
-            var selection = window.getSelection();
-            if (!selection) {
-                return;
-            }
-
-            selection.removeAllRanges();
-            selection.addRange(range);
-            savedRange = range.cloneRange();
-        }
-
-        // ── Inline formatting (replaces document.execCommand) ────────
-
-        function getClosestTag(tagName) {
-            var range = getEditorRange();
-            var node = range.commonAncestorContainer;
-            if (node.nodeType === Node.TEXT_NODE) {
-                node = node.parentNode;
-            }
-            var upper = tagName.toUpperCase();
-            while (node && node !== editor) {
-                if (node.nodeType === Node.ELEMENT_NODE && node.tagName === upper) {
-                    return node;
-                }
-                node = node.parentNode;
-            }
-            return null;
-        }
-
-        function unwrapElement(el) {
-            var parent = el.parentNode;
-            while (el.firstChild) {
-                parent.insertBefore(el.firstChild, el);
-            }
-            parent.removeChild(el);
-            parent.normalize();
-        }
-
-        function toggleInlineFormat(tagName) {
-            restoreSelection();
+            editor.value = text.substring(0, start) + before + selected + after + text.substring(end);
+            editor.selectionStart = start + before.length;
+            editor.selectionEnd = end + before.length;
             editor.focus();
+            syncPreview();
+        }
 
-            var existing = getClosestTag(tagName);
-            if (existing) {
-                unwrapElement(existing);
-                sync();
-                saveSelection();
-                return;
-            }
+        function prefixLines(prefix) {
+            var start = editor.selectionStart;
+            var end = editor.selectionEnd;
+            var text = editor.value;
 
-            var range = getEditorRange();
-            if (!range) {
-                return;
-            }
+            // Expand selection to full lines
+            var lineStart = text.lastIndexOf("\n", start - 1) + 1;
+            var lineEnd = text.indexOf("\n", end);
+            if (lineEnd === -1) lineEnd = text.length;
 
-            var wrapper = document.createElement(tagName);
+            var selectedLines = text.substring(lineStart, lineEnd);
+            var lines = selectedLines.split("\n");
 
-            if (range.collapsed) {
-                wrapper.appendChild(document.createTextNode("\u200B"));
-                range.insertNode(wrapper);
-                var r = document.createRange();
-                r.setStart(wrapper.firstChild, 1);
-                r.collapse(true);
-                selectRange(r);
-            } else {
-                try {
-                    range.surroundContents(wrapper);
-                } catch (e) {
-                    var contents = range.extractContents();
-                    wrapper.appendChild(contents);
-                    range.insertNode(wrapper);
+            var prefixed = lines.map(function (line, i) {
+                if (typeof prefix === "function") {
+                    return prefix(line, i);
                 }
-                var r = document.createRange();
-                r.selectNodeContents(wrapper);
-                selectRange(r);
-            }
+                return prefix + line;
+            }).join("\n");
 
-            sync();
-            saveSelection();
-        }
-
-        // ── List creation ────────────────────────────────────────────
-
-        function createList(type) {
+            editor.value = text.substring(0, lineStart) + prefixed + text.substring(lineEnd);
+            editor.selectionStart = lineStart;
+            editor.selectionEnd = lineStart + prefixed.length;
             editor.focus();
-            restoreSelection();
-
-            // Get selected text or current line text
-            var range = getEditorRange();
-            var selectedText = range ? range.toString().trim() : "";
-
-            // Split into lines for multi-line selections
-            var lines = selectedText
-                ? selectedText.split(/\n+/).map(function (l) { return l.trim(); }).filter(Boolean)
-                : [];
-
-            // Build the list HTML
-            var listHtml;
-            if (lines.length > 0) {
-                var itemsHtml = lines.map(function (line) {
-                    // Escape HTML in the line text
-                    var escaped = line.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
-                    return "<li>" + escaped + "</li>";
-                }).join("");
-                listHtml = "<" + type + ">" + itemsHtml + "</" + type + ">";
-            } else {
-                listHtml = "<" + type + "><li><br></li></" + type + ">";
-            }
-
-            // Delete selected content if any
-            if (range && !range.collapsed) {
-                range.deleteContents();
-            }
-
-            // Insert the list HTML at the cursor position using a temporary marker
-            // This is more reliable than insertNode for contenteditable lists
-            var marker = document.createElement("span");
-            marker.id = "est-list-insert-marker";
-            if (range) {
-                range.insertNode(marker);
-            } else {
-                editor.appendChild(marker);
-            }
-
-            // Replace marker with list HTML
-            // nosec: listHtml is built from escaped user text, not external input
-            marker.outerHTML = listHtml;
-
-            // Place cursor in the first list item
-            var insertedList = editor.querySelector(type + ":last-of-type");
-            if (insertedList) {
-                var firstLi = insertedList.querySelector("li");
-                if (firstLi) {
-                    var sel = window.getSelection();
-                    var newRange = document.createRange();
-                    newRange.setStart(firstLi, 0);
-                    newRange.collapse(true);
-                    sel.removeAllRanges();
-                    sel.addRange(newRange);
-                    savedRange = newRange.cloneRange();
-                }
-            }
-
-            sync();
+            syncPreview();
         }
 
-        // ── Link insertion (Range API) ───────────────────────────────
-
-        function insertLink(url) {
-            restoreSelection();
-            editor.focus();
-
-            var range = getEditorRange();
-            if (!range || !url) {
-                return;
-            }
-
-            var anchor = document.createElement("a");
-            anchor.href = url;
-            anchor.target = "_blank";
-            anchor.rel = "noopener";
-
-            if (range.collapsed) {
-                anchor.textContent = url;
-                range.insertNode(anchor);
-            } else {
-                try {
-                    range.surroundContents(anchor);
-                } catch (e) {
-                    var contents = range.extractContents();
-                    anchor.appendChild(contents);
-                    range.insertNode(anchor);
-                }
-            }
-
-            var r = document.createRange();
-            r.setStartAfter(anchor);
-            r.collapse(true);
-            selectRange(r);
-
-            sync();
-            saveSelection();
-        }
-
-        // ── Image insertion (DOM-based) ──────────────────────────────
-
-        function insertImage(url) {
-            restoreSelection();
-            editor.focus();
-
-            var range = getEditorRange();
-            if (!range || !url) {
-                return;
-            }
-
-            var img = document.createElement("img");
-            img.src = url;
-            img.alt = "";
-
-            range.collapse(false);
-            range.insertNode(img);
-
-            var r = document.createRange();
-            r.setStartAfter(img);
-            r.collapse(true);
-            selectRange(r);
-
-            sync();
-            saveSelection();
-        }
-
-        // ── Client-side image compression + insert ─────────────────
-
-        function compressAndInsertImage(file) {
-            var reader = new FileReader();
-            reader.onload = function (e) {
-                var img = new Image();
-                img.onload = function () {
-                    var width = img.width;
-                    var height = img.height;
-
-                    // Downscale if wider than MAX_IMAGE_WIDTH
-                    if (width > MAX_IMAGE_WIDTH) {
-                        height = Math.round(height * (MAX_IMAGE_WIDTH / width));
-                        width = MAX_IMAGE_WIDTH;
+        function handleAction(action) {
+            switch (action) {
+                case "bold":
+                    wrapSelection("**", "**");
+                    break;
+                case "italic":
+                    wrapSelection("*", "*");
+                    break;
+                case "ul":
+                    prefixLines("- ");
+                    break;
+                case "ol":
+                    prefixLines(function (line, i) {
+                        return (i + 1) + ". " + line;
+                    });
+                    break;
+                case "link":
+                    var url = window.prompt("Voer een URL in");
+                    if (url) {
+                        var start = editor.selectionStart;
+                        var end = editor.selectionEnd;
+                        var selected = editor.value.substring(start, end) || "linktekst";
+                        wrapSelection("[", "](" + url + ")");
+                        if (start === end) {
+                            // No selection — put "linktekst" placeholder
+                            var text = editor.value;
+                            editor.value = text.substring(0, start) + "[" + selected + "](" + url + ")" + text.substring(start);
+                            editor.selectionStart = start + 1;
+                            editor.selectionEnd = start + 1 + selected.length;
+                            editor.focus();
+                            syncPreview();
+                        }
                     }
-
-                    var canvas = document.createElement("canvas");
-                    canvas.width = width;
-                    canvas.height = height;
-                    var ctx = canvas.getContext("2d");
-                    ctx.drawImage(img, 0, 0, width, height);
-
-                    var dataUrl = canvas.toDataURL("image/jpeg", IMAGE_QUALITY);
-                    restoreSelection();
-                    insertImage(dataUrl);
-                };
-                img.src = e.target.result;
-            };
-            reader.readAsDataURL(file);
+                    break;
+                case "image":
+                    var fileInput = root.querySelector("[data-md-image-upload]");
+                    if (fileInput) {
+                        fileInput.click();
+                    }
+                    break;
+            }
         }
 
-        // ── Image resize popover ─────────────────────────────────────
+        // ── Toolbar button bindings ──────────────────────────────────
 
-        var imageResizePopover = null;
-        var activeResizeImage = null;
-
-        function createImageResizePopover() {
-            var popover = document.createElement("div");
-            popover.className = "est-image-resize-popover";
-            popover.style.cssText = "position:absolute;z-index:10000;background:#333;border-radius:4px;padding:4px 6px;display:flex;gap:4px;box-shadow:0 2px 8px rgba(0,0,0,0.3);";
-            var sizes = [
-                { label: "25%", value: "25%" },
-                { label: "50%", value: "50%" },
-                { label: "75%", value: "75%" },
-                { label: "100%", value: "100%" }
-            ];
-            sizes.forEach(function (size) {
-                var btn = document.createElement("button");
-                btn.type = "button";
-                btn.textContent = size.label;
-                btn.style.cssText = "background:#555;color:#fff;border:none;border-radius:3px;padding:3px 8px;cursor:pointer;font-size:12px;line-height:1.4;";
-                btn.addEventListener("mousedown", function (e) {
-                    e.preventDefault();
-                    e.stopPropagation();
-                });
-                btn.addEventListener("click", function (e) {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    if (activeResizeImage) {
-                        activeResizeImage.style.maxWidth = size.value;
-                        activeResizeImage.style.width = size.value;
-                        sync();
-                    }
-                    dismissImageResizePopover();
-                });
-                popover.appendChild(btn);
+        root.querySelectorAll("[data-md-action]").forEach(function (button) {
+            button.addEventListener("click", function (e) {
+                e.preventDefault();
+                handleAction(button.getAttribute("data-md-action"));
             });
-            return popover;
+        });
+
+        // ── Image file upload ────────────────────────────────────────
+
+        var fileInput = root.querySelector("[data-md-image-upload]");
+        if (fileInput) {
+            fileInput.addEventListener("change", function () {
+                var file = fileInput.files[0];
+                if (!file) return;
+
+                var formData = new FormData();
+                formData.append("file", file);
+
+                var csrfToken = document.querySelector("[data-csrf-token]");
+                var token = csrfToken ? csrfToken.getAttribute("data-csrf-token") : "";
+
+                var imageButton = root.querySelector('[data-md-action="image"]');
+                if (imageButton) {
+                    imageButton.disabled = true;
+                    imageButton.querySelector("i").className = "fas fa-spinner fa-spin";
+                }
+
+                fetch("/neos/notifications/api/uploadImage", {
+                    method: "POST",
+                    headers: { "X-Flow-Csrftoken": token },
+                    body: formData
+                })
+                .then(function (res) { return res.json(); })
+                .then(function (data) {
+                    if (data.success && data.url) {
+                        var pos = editor.selectionStart;
+                        var text = editor.value;
+                        var insert = "![afbeelding](" + data.url + ")";
+                        editor.value = text.substring(0, pos) + insert + text.substring(pos);
+                        editor.selectionStart = editor.selectionEnd = pos + insert.length;
+                        editor.focus();
+                        syncPreview();
+                    } else {
+                        window.alert("Upload mislukt: " + (data.error || "onbekende fout"));
+                    }
+                })
+                .catch(function () {
+                    window.alert("Upload mislukt: netwerkfout");
+                })
+                .finally(function () {
+                    if (imageButton) {
+                        imageButton.disabled = false;
+                        imageButton.querySelector("i").className = "fas fa-image";
+                    }
+                    fileInput.value = "";
+                });
+            });
         }
 
-        function showImageResizePopover(img) {
-            dismissImageResizePopover();
-            activeResizeImage = img;
-            imageResizePopover = createImageResizePopover();
-            document.body.appendChild(imageResizePopover);
+        // ── Keyboard shortcuts ───────────────────────────────────────
 
-            var rect = img.getBoundingClientRect();
-            var popoverWidth = 200;
-            var left = rect.left + (rect.width / 2) - (popoverWidth / 2);
-            var top = rect.top - 36;
-            if (top < 0) {
-                top = rect.bottom + 4;
+        editor.addEventListener("keydown", function (e) {
+            if ((e.ctrlKey || e.metaKey) && e.key === "b") {
+                e.preventDefault();
+                handleAction("bold");
             }
-            imageResizePopover.style.left = (left + window.scrollX) + "px";
-            imageResizePopover.style.top = (top + window.scrollY) + "px";
-        }
-
-        function dismissImageResizePopover() {
-            if (imageResizePopover && imageResizePopover.parentNode) {
-                imageResizePopover.parentNode.removeChild(imageResizePopover);
-            }
-            imageResizePopover = null;
-            activeResizeImage = null;
-        }
-
-        editor.addEventListener("click", function (e) {
-            if (e.target && e.target.tagName === "IMG" && editor.contains(e.target)) {
-                showImageResizePopover(e.target);
-            } else {
-                dismissImageResizePopover();
+            if ((e.ctrlKey || e.metaKey) && e.key === "i") {
+                e.preventDefault();
+                handleAction("italic");
             }
         });
 
-        document.addEventListener("mousedown", function (e) {
-            if (imageResizePopover && !imageResizePopover.contains(e.target) && !(e.target && e.target.tagName === "IMG" && editor.contains(e.target))) {
-                dismissImageResizePopover();
+        // ── Tab key inserts spaces ───────────────────────────────────
+
+        editor.addEventListener("keydown", function (e) {
+            if (e.key === "Tab") {
+                e.preventDefault();
+                var start = editor.selectionStart;
+                var text = editor.value;
+                editor.value = text.substring(0, start) + "  " + text.substring(start);
+                editor.selectionStart = editor.selectionEnd = start + 2;
+                syncPreview();
             }
         });
 
-        // ── Command dispatcher ───────────────────────────────────────
+        // ── Simple markdown → HTML for live preview ──────────────────
 
-        function applyCommand(command) {
-            if (command === "bold") {
-                toggleInlineFormat("strong");
-                return;
-            }
+        function markdownToHtml(md) {
+            if (!md.trim()) return "";
 
-            if (command === "italic") {
-                toggleInlineFormat("em");
-                return;
-            }
+            var html = md
+                // Escape HTML entities
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                // Bold
+                .replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>")
+                // Italic
+                .replace(/\*(.+?)\*/g, "<em>$1</em>")
+                // Images (before links)
+                .replace(/!\[([^\]]*)\]\(([^)]+)\)/g, '<img src="$2" alt="$1" style="max-width:100%;height:auto">')
+                // Links
+                .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank" rel="noopener">$1</a>');
 
-            if (command === "insertUnorderedList" || command === "insertOrderedList") {
-                createList(command === "insertOrderedList" ? "ol" : "ul");
-                return;
+            // Process blocks: lists and paragraphs
+            var lines = html.split("\n");
+            var result = [];
+            var inUl = false;
+            var inOl = false;
+
+            for (var i = 0; i < lines.length; i++) {
+                var line = lines[i];
+                var ulMatch = line.match(/^[-*]\s+(.*)/);
+                var olMatch = line.match(/^\d+\.\s+(.*)/);
+
+                if (ulMatch) {
+                    if (!inUl) { result.push("<ul>"); inUl = true; }
+                    if (inOl) { result.push("</ol>"); inOl = false; }
+                    result.push("<li>" + ulMatch[1] + "</li>");
+                } else if (olMatch) {
+                    if (!inOl) { result.push("<ol>"); inOl = true; }
+                    if (inUl) { result.push("</ul>"); inUl = false; }
+                    result.push("<li>" + olMatch[1] + "</li>");
+                } else {
+                    if (inUl) { result.push("</ul>"); inUl = false; }
+                    if (inOl) { result.push("</ol>"); inOl = false; }
+                    if (line.trim() === "") {
+                        result.push("");
+                    } else {
+                        result.push("<p>" + line + "</p>");
+                    }
+                }
             }
+            if (inUl) result.push("</ul>");
+            if (inOl) result.push("</ol>");
+
+            return result.join("\n");
         }
 
         // ── Preview sync ─────────────────────────────────────────────
 
         function formatDate(value) {
-            if (!value) {
-                return "";
-            }
-
+            if (!value) return "";
             var date = new Date(value);
-            if (Number.isNaN(date.getTime())) {
-                return "";
-            }
-
+            if (Number.isNaN(date.getTime())) return "";
             return new Intl.DateTimeFormat("nl-NL", {
-                day: "2-digit",
-                month: "short",
-                year: "numeric",
-                hour: "2-digit",
-                minute: "2-digit"
+                day: "2-digit", month: "short", year: "numeric",
+                hour: "2-digit", minute: "2-digit"
             }).format(date);
         }
 
@@ -450,7 +256,7 @@
             var title = titleInput && titleInput.value.trim()
                 ? titleInput.value.trim()
                 : "Nog geen titel ingevuld";
-            var body = source.value.trim();
+            var markdown = editor.value.trim();
             var showFrom = formatDate(showFromInput && showFromInput.value);
             var showUntil = formatDate(showUntilInput && showUntilInput.value);
 
@@ -470,91 +276,19 @@
                 }
             }
 
-            // nosec: body is admin-authored HTML from the editor, server-side sanitized before storage
-            preview.innerHTML = body || [
-                "<div class=\"est-previewEmpty\">",
-                "<strong>Hier verschijnt je bericht</strong>",
-                "<p>Begin met een korte samenvatting, voeg daarna eventueel een lijst of screenshot toe.</p>",
-                "</div>"
-            ].join("");
-            preview.classList.toggle("is-empty", body === "");
-            editor.classList.toggle("is-empty", editor.textContent.trim() === "" && editor.querySelectorAll("img, ul, ol, blockquote").length === 0);
-        }
-
-        function sync() {
-            // nosec: editor.innerHTML is the admin's own contenteditable output
-            source.value = editor.innerHTML.trim();
-            syncPreview();
+            // nosec: markdownToHtml escapes all HTML entities before processing
+            preview.innerHTML = markdown
+                ? markdownToHtml(markdown)
+                : '<div class="est-previewEmpty"><strong>Hier verschijnt je bericht</strong><p>Schrijf markdown in het tekstveld links.</p></div>';
+            preview.classList.toggle("is-empty", markdown === "");
         }
 
         // ── Event bindings ───────────────────────────────────────────
 
-        root.querySelectorAll("[data-editor-command]").forEach(function (button) {
-            button.addEventListener("mousedown", function (event) {
-                event.preventDefault();
-            });
-            button.addEventListener("click", function () {
-                applyCommand(button.getAttribute("data-editor-command"));
-            });
-        });
-
-        root.querySelector("[data-editor-link]")?.addEventListener("mousedown", function (event) {
-            event.preventDefault();
-            saveSelection();
-        });
-
-        root.querySelector("[data-editor-link]")?.addEventListener("click", function () {
-            var url = window.prompt("Voer een URL in");
-            if (url) {
-                insertLink(url);
-            }
-        });
-
-        root.querySelector("[data-editor-image-url]")?.addEventListener("mousedown", function (event) {
-            event.preventDefault();
-            saveSelection();
-        });
-
-        root.querySelector("[data-editor-image-url]")?.addEventListener("click", function () {
-            var url = window.prompt("Voer de URL van een afbeelding in");
-            if (url) {
-                restoreSelection();
-                insertImage(url);
-            }
-        });
-
-        root.querySelector("[data-editor-upload]")?.addEventListener("mousedown", function (event) {
-            event.preventDefault();
-            saveSelection();
-        });
-
-        root.querySelector("[data-editor-upload]")?.addEventListener("click", function () {
-            uploadInput?.click();
-        });
-
-        uploadInput?.addEventListener("change", function () {
-            var file = uploadInput.files && uploadInput.files[0];
-            if (!file) {
-                return;
-            }
-
-            compressAndInsertImage(file);
-            uploadInput.value = "";
-        });
-
-        editor.addEventListener("input", sync);
-        editor.addEventListener("mouseup", saveSelection);
-        editor.addEventListener("keyup", saveSelection);
-        editor.addEventListener("focus", saveSelection);
-        document.addEventListener("selectionchange", saveSelection);
+        editor.addEventListener("input", syncPreview);
         titleInput?.addEventListener("input", syncPreview);
         showFromInput?.addEventListener("input", syncPreview);
         showUntilInput?.addEventListener("input", syncPreview);
-        root.addEventListener("submit", sync);
-        editor.addEventListener("focus", function () {
-            editor.classList.remove("is-empty");
-        });
-        editor.addEventListener("blur", syncPreview);
     }
 
     function initConfirmActions() {
@@ -569,7 +303,7 @@
     }
 
     document.addEventListener("DOMContentLoaded", function () {
-        document.querySelectorAll("[data-notification-editor]").forEach(initEditor);
+        document.querySelectorAll("[data-notification-editor]").forEach(initMarkdownEditor);
         initConfirmActions();
     });
 })();

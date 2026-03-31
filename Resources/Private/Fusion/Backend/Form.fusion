@@ -24,14 +24,6 @@ prototype(UpAssist.Neos.EditorNotifications:Backend.Form) < prototype(Neos.Fusio
                 <span class="est-statusBar__hint">{props.notification.statusHint}</span>
             </div>
 
-            <div class="est-statusBar est-statusBar--new" @if.isNewMode={props.mode == 'new'}>
-                <span class="est-statusBar__label">
-                    <i class="fas fa-plus" aria-hidden="true"></i>
-                    Nieuw
-                </span>
-                <span class="est-statusBar__hint">Wordt opgeslagen als concept</span>
-            </div>
-
             <div class="neos-message neos-message-error" @if.hasValidationErrors={Array.length(props.validationErrors) > 0}>
                 <strong>Controleer het formulier</strong>
                 <ul>
@@ -81,39 +73,42 @@ prototype(UpAssist.Neos.EditorNotifications:Backend.Form) < prototype(Neos.Fusio
                                 Bericht
                                 <span class="est-help" tabindex="0">
                                     <i class="fas fa-question-circle neos-help-message-icon" aria-hidden="true"></i>
-                                    <span class="est-helpText">Vertel wat er is veranderd, waarom het relevant is en wat redacteurs ermee moeten doen.</span>
+                                    <span class="est-helpText">Schrijf in Markdown. Gebruik **vet**, *cursief*, - voor lijsten, [tekst](url) voor links.</span>
                                 </span>
                             </span>
                         </div>
                         <div class="est-editorToolbar">
-                            <button type="button" class="neos-button" data-editor-command="bold" title="Vet (Ctrl+B)" aria-label="Vet">
+                            <button type="button" class="neos-button" data-md-action="bold" title="Vet (Ctrl+B)" aria-label="Vet">
                                 <i class="fas fa-bold" aria-hidden="true"></i>
                             </button>
-                            <button type="button" class="neos-button" data-editor-command="italic" title="Cursief (Ctrl+I)" aria-label="Cursief">
+                            <button type="button" class="neos-button" data-md-action="italic" title="Cursief (Ctrl+I)" aria-label="Cursief">
                                 <i class="fas fa-italic" aria-hidden="true"></i>
                             </button>
-                            <button type="button" class="neos-button" data-editor-link="true" title="Link invoegen" aria-label="Link invoegen">
+                            <button type="button" class="neos-button" data-md-action="ul" title="Opsommingslijst" aria-label="Opsommingslijst">
+                                <i class="fas fa-list-ul" aria-hidden="true"></i>
+                            </button>
+                            <button type="button" class="neos-button" data-md-action="ol" title="Genummerde lijst" aria-label="Genummerde lijst">
+                                <i class="fas fa-list-ol" aria-hidden="true"></i>
+                            </button>
+                            <button type="button" class="neos-button" data-md-action="link" title="Link invoegen" aria-label="Link invoegen">
                                 <i class="fas fa-link" aria-hidden="true"></i>
                             </button>
-                            <button type="button" class="neos-button" data-editor-image-url="true" title="Afbeelding via URL" aria-label="Afbeelding via URL">
+                            <button type="button" class="neos-button" data-md-action="image" title="Afbeelding uploaden" aria-label="Afbeelding uploaden">
                                 <i class="fas fa-image" aria-hidden="true"></i>
                             </button>
-                            <button type="button" class="neos-button" data-editor-upload="true" title="Screenshot uploaden" aria-label="Screenshot uploaden">
-                                <i class="fas fa-upload" aria-hidden="true"></i>
-                            </button>
+                            <input type="file" data-md-image-upload="true" accept="image/*" class="est-hiddenFileInput" />
                             <span class="est-help est-help--toolbar" tabindex="0">
                                 <i class="fas fa-question-circle neos-help-message-icon" aria-hidden="true"></i>
-                                <span class="est-helpText">Gebruik de iconen om tekst op te maken, een link toe te voegen of een screenshot inline in het bericht te plaatsen.</span>
+                                <span class="est-helpText">Markdown: **vet**, *cursief*, - lijst, 1. nummering, [tekst](url), ![alt](url)</span>
                             </span>
                         </div>
-                        <div
-                            class="est-editor"
-                            contenteditable="true"
-                            data-editor-surface="true"
-                            data-placeholder="Start met een korte samenvatting. Voeg daarna eventueel bullets, links of screenshots toe."
-                        ></div>
-                        <textarea name="moduleArguments[content]" class="est-editorSource" data-editor-source="true">{props.formData.content}</textarea>
-                        <input type="file" accept="image/*" class="est-editorUpload" data-editor-upload-input="true" />
+                        <textarea
+                            name="moduleArguments[content]"
+                            class="est-editor est-editor--markdown"
+                            data-md-editor="true"
+                            placeholder="Start met een korte samenvatting. Voeg daarna eventueel bullets, links of screenshots toe.&#10;&#10;Markdown: **vet**, *cursief*, - lijst, [tekst](url)"
+                            rows="12"
+                        >{props.formData.content}</textarea>
                     </div>
 
                     <div class="est-fieldGrid">

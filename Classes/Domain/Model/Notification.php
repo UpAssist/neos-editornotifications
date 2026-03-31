@@ -25,6 +25,12 @@ class Notification
      * @var string
      * @ORM\Column(type="text")
      */
+    protected string $contentMarkdown = '';
+
+    /**
+     * @var string
+     * @ORM\Column(type="text")
+     */
     protected string $content = '';
 
     /**
@@ -75,6 +81,16 @@ class Notification
     public function setTitle(string $title): void
     {
         $this->title = trim($title);
+    }
+
+    public function getContentMarkdown(): string
+    {
+        return $this->contentMarkdown;
+    }
+
+    public function setContentMarkdown(string $contentMarkdown): void
+    {
+        $this->contentMarkdown = trim($contentMarkdown);
     }
 
     public function getContent(): string

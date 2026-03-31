@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace UpAssist\Neos\EditorNotifications\Service;
 
+use League\CommonMark\CommonMarkConverter;
 use Neos\Flow\Annotations as Flow;
 use Neos\Flow\Persistence\PersistenceManagerInterface;
 use Neos\Neos\Domain\Model\User;
@@ -66,7 +67,8 @@ class NotificationService
         }
 
         $notification->setTitle($title);
-        $notification->setContent($this->sanitizeContent($content));
+        $notification->setContentMarkdown($content);
+        $notification->setContent($this->renderMarkdown($content));
         $notification->setShowFrom($showFrom);
         $notification->setShowUntil($showUntil);
 
@@ -110,7 +112,7 @@ class NotificationService
     /**
      * @return array{count: int, items: array<int, array<string, mixed>>}
      */
-    public function getActiveNotificationsForCurrentUser(): array
+    public function getActiveNotificationsForCurrentUser(bool $includeDismissed = false): array
     {
         $user = $this->getCurrentUser();
         if ($user === null) {
@@ -130,7 +132,7 @@ class NotificationService
                 $unreadCount++;
             }
 
-            if ($isDismissed) {
+            if ($isDismissed && !$includeDismissed) {
                 continue;
             }
 
@@ -147,10 +149,7 @@ class NotificationService
         }
 
         usort($items, static function (array $left, array $right): int {
-            if ($left['isSeen'] === $right['isSeen']) {
-                return strcmp((string)($right['publishedAt'] ?? ''), (string)($left['publishedAt'] ?? ''));
-            }
-            return $left['isSeen'] ? 1 : -1;
+            return strcmp((string)($right['publishedAt'] ?? ''), (string)($left['publishedAt'] ?? ''));
         });
 
         return [
@@ -170,6 +169,23 @@ class NotificationService
         if ($state->getSeenAt() === null) {
             $state->setSeenAt(new \DateTime());
         }
+        $this->persistReadState($state);
+    }
+
+    public function markUnseen(Notification $notification): void
+    {
+        $user = $this->getCurrentUser();
+        if ($user === null) {
+            return;
+        }
+
+        $state = $this->notificationReadStateRepository->findOneByNotificationAndUser($notification, $user);
+        if ($state === null) {
+            return;
+        }
+
+        $state->setSeenAt(null);
+        $state->setDismissedAt(null);
         $this->persistReadState($state);
     }
 
@@ -208,14 +224,19 @@ class NotificationService
         return $errors;
     }
 
-    private function sanitizeContent(string $content): string
+    private function renderMarkdown(string $markdown): string
     {
-        $content = trim($content);
-        $content = preg_replace('#<script\b[^>]*>(.*?)</script>#is', '', $content) ?? '';
-        $content = preg_replace('#<style\b[^>]*>(.*?)</style>#is', '', $content) ?? $content;
-        $content = preg_replace('/\son[a-z]+\s*=\s*("|\').*?\1/iu', '', $content) ?? $content;
-        $content = preg_replace('/\s(href|src)\s*=\s*("|\')\s*javascript:[^"\']*\2/iu', '', $content) ?? $content;
-        return $content;
+        $markdown = trim($markdown);
+        if ($markdown === '') {
+            return '';
+        }
+
+        $converter = new CommonMarkConverter([
+            'html_input' => 'strip',
+            'allow_unsafe_links' => false,
+        ]);
+
+        return trim($converter->convert($markdown)->getContent());
     }
 
     private function findOrCreateReadState(Notification $notification, User $user): NotificationReadState

@@ -1,12 +1,12 @@
 (function () {
     var API_BASE = "/neos/notifications/api/";
     var CONTENT_ROUTE_HINT = "/neos/content";
-    var START_RETRY_DELAY = 500;
-    var START_RETRY_LIMIT = 20;
+    var START_TIMEOUT = 15000;
     var POLL_INTERVAL = 60000;
-    var PANEL_WIDTH = 380;
+    var PANEL_WIDTH = 320;
     var started = false;
     var expandedItemId = null;
+    var showDismissed = false;
 
     function getCsrfToken() {
         var el = document.querySelector("[data-csrf-token]");
@@ -53,10 +53,22 @@
     }
 
     function findTopBarHost() {
+        // Stable ID selector (legacy Neos builds)
+        var byId = document.querySelector("#neos-top-bar");
+        if (byId) {
+            return byId;
+        }
+
+        var app = document.getElementById("neos-application");
+        if (!app) {
+            return null;
+        }
+
+        // Neos UI React app uses CSS modules — class names are "[local]___[hash]".
+        // Match the stable local-name prefix, which survives hash changes across builds.
         return (
-            document.querySelector("#neos-top-bar") ||
-            document.querySelector('#neos-application [class*="primaryToolbar__rightSidedActions"]') ||
-            document.querySelector('#neos-application [class*="primaryToolbar"]')
+            app.querySelector('[class*="primaryToolbar__rightSidedActions"]') ||
+            app.querySelector('[class*="primaryToolbar"]')
         );
     }
 
@@ -68,10 +80,8 @@
             ".editor-notifications-badge { position: relative; width: 40px; height: 40px; border: 0; border-left: 1px solid rgba(255,255,255,.08); border-right: 1px solid rgba(0,0,0,.35); background: #262624; color: #fff; cursor: pointer; padding: 0; display: inline-flex; align-items: center; justify-content: center; }" +
             ".editor-notifications-badge:hover { background: #323232; }" +
             ".editor-notifications-badge.is-open { background: #1f1f1d; }" +
-            // Bell icon via CSS shapes
-            ".editor-notifications-badge__icon { position: relative; width: 14px; height: 14px; border: 2px solid currentColor; border-radius: 8px 8px 3px 3px; box-sizing: border-box; opacity: .95; }" +
-            ".editor-notifications-badge__icon::before { content: ''; position: absolute; left: 3px; top: -5px; width: 4px; height: 4px; border: 2px solid currentColor; border-bottom: 0; border-radius: 4px 4px 0 0; }" +
-            ".editor-notifications-badge__icon::after { content: ''; position: absolute; left: 3px; bottom: -4px; width: 4px; height: 4px; border-radius: 50%; background: currentColor; }" +
+            // Bell icon (inline SVG)
+            ".editor-notifications-badge__icon { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 1.5; opacity: .95; }" +
             ".editor-notifications-badge__label { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0, 0, 0, 0); }" +
             ".editor-notifications-badge__count { position: absolute; top: 7px; right: 5px; min-width: 16px; height: 16px; padding: 0 4px; border-radius: 999px; background: #ff7a1a; color: #fff; font-size: 10px; font-weight: 700; line-height: 16px; text-align: center; box-sizing: border-box; }" +
             ".editor-notifications-badge__count.is-zero { display: none; }" +
@@ -109,11 +119,24 @@
             ".editor-notification-item__content { font-size: 14px; line-height: 1.6; color: #ddd; }" +
             ".editor-notification-item__content img { max-width: 100%; height: auto; border-radius: 4px; margin: 8px 0; }" +
             ".editor-notification-item__content a { color: #00b5ff; }" +
-            ".editor-notification-item__actions { margin-top: 12px; }" +
-            ".editor-notification-item__dismiss { border: 0; background: #3f3f3f; color: #fff; padding: 6px 14px; font-size: 13px; cursor: pointer; border-radius: 3px; }" +
+            ".editor-notification-item__content ul, .editor-notification-item__content ol { margin: .5em 0; padding-left: 1.8em; }" +
+            ".editor-notification-item__content ul, .editor-notification-item__content ul li { list-style-type: disc; }" +
+            ".editor-notification-item__content ol, .editor-notification-item__content ol li { list-style-type: decimal; }" +
+            ".editor-notification-item__content li { display: list-item; margin: .2em 0; }" +
+            ".editor-notification-item__actions { margin-top: 12px; display: flex; gap: 8px; }" +
+            ".editor-notification-item__dismiss { border: 0; background: #3f3f3f; color: #fff; padding: 4px 10px; font-size: 11px; cursor: pointer; border-radius: 2px; }" +
             ".editor-notification-item__dismiss:hover { background: #555; }" +
-            // Toast
-            ".editor-notifications-toast { position: fixed; right: 24px; bottom: 24px; z-index: 1200; background: #111827; color: #fff; padding: 16px 18px; border-radius: 14px; box-shadow: 0 18px 40px rgba(0,0,0,.35); max-width: 320px; cursor: pointer; }";
+            // Dismissed items
+            ".editor-notification-item.is-dismissed { opacity: .5; }" +
+            ".editor-notification-item.is-dismissed .editor-notification-item__title { text-decoration: line-through; }" +
+            // Toggle dismissed button
+            ".editor-notifications-panel__toggle-dismissed { display: block; width: 100%; border: 0; background: transparent; color: #777; font-size: 12px; padding: 12px 16px; cursor: pointer; text-align: center; }" +
+            ".editor-notifications-panel__toggle-dismissed:hover { color: #aaa; background: rgba(255,255,255,.05); }" +
+            // Toast — Neos style
+            ".editor-notifications-toast { position: fixed; right: 16px; bottom: 16px; z-index: 1200; background: #141414; color: #fff; padding: 14px 16px; border-radius: 2px; border-left: 3px solid #ff460d; box-shadow: 0 4px 12px rgba(0,0,0,.4); max-width: 300px; cursor: pointer; font-size: 14px; line-height: 1.4; }" +
+            ".editor-notifications-toast:hover { background: #1a1a1a; }" +
+            ".editor-notifications-toast strong { display: block; margin-bottom: 2px; }" +
+            ".editor-notifications-toast div { font-size: 12px; color: #999; }";
         document.head.appendChild(style);
     }
 
@@ -135,9 +158,14 @@
         badge.type = "button";
         badge.style.display = "none";
 
-        var badgeIcon = document.createElement("span");
-        badgeIcon.className = "editor-notifications-badge__icon";
+        var badgeIcon = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+        badgeIcon.setAttribute("viewBox", "0 0 24 24");
+        badgeIcon.setAttribute("class", "editor-notifications-badge__icon");
         badgeIcon.setAttribute("aria-hidden", "true");
+        // Bell shape: body + clapper
+        var bellPath = document.createElementNS("http://www.w3.org/2000/svg", "path");
+        bellPath.setAttribute("d", "M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9M13.73 21a2 2 0 0 1-3.46 0");
+        badgeIcon.appendChild(bellPath);
         badge.appendChild(badgeIcon);
 
         var badgeLabel = document.createElement("span");
@@ -247,8 +275,9 @@
 
         data.items.forEach(function (item) {
             var isExpanded = expandedItemId === item.identifier;
+            var isDismissed = !!item.isDismissed;
             var article = document.createElement("div");
-            article.className = "editor-notification-item" + (item.isSeen ? "" : " is-unread") + (isExpanded ? " is-expanded" : "");
+            article.className = "editor-notification-item" + (item.isSeen ? "" : " is-unread") + (isExpanded ? " is-expanded" : "") + (isDismissed ? " is-dismissed" : "");
 
             // Header row (clickable)
             var headerBtn = document.createElement("button");
@@ -295,31 +324,60 @@
 
             var content = document.createElement("div");
             content.className = "editor-notification-item__content";
-            content.innerHTML = sanitizeHtml(item.content); // nosec: sanitized
+            content.innerHTML = sanitizeHtml(item.content); // nosec: admin-authored, sanitized by sanitizeHtml()
+            // Force all links to open in new tab so editors stay in Neos
+            content.querySelectorAll("a").forEach(function (a) {
+                a.setAttribute("target", "_blank");
+                a.setAttribute("rel", "noopener");
+            });
             body.appendChild(content);
 
             var actions = document.createElement("div");
             actions.className = "editor-notification-item__actions";
 
-            var dismissBtn = document.createElement("button");
-            dismissBtn.type = "button";
-            dismissBtn.className = "editor-notification-item__dismiss";
-            dismissBtn.textContent = "Verbergen";
-            dismissBtn.addEventListener("click", async function (e) {
-                e.stopPropagation();
-                try {
-                    await request("dismiss", {
-                        method: "POST",
-                        body: new URLSearchParams({ notificationIdentifier: item.identifier }),
-                    });
-                } catch (err) {
-                    console.warn("EditorNotifications: dismiss failed", err);
-                }
-                refresh(wrapper, false);
-            });
-            actions.appendChild(dismissBtn);
+            if (!isDismissed) {
+                var dismissBtn = document.createElement("button");
+                dismissBtn.type = "button";
+                dismissBtn.className = "editor-notification-item__dismiss";
+                dismissBtn.textContent = "Verbergen";
+                dismissBtn.addEventListener("click", async function (e) {
+                    e.stopPropagation();
+                    try {
+                        await request("dismiss", {
+                            method: "POST",
+                            body: new URLSearchParams({ notificationIdentifier: item.identifier }),
+                        });
+                    } catch (err) {
+                        console.warn("EditorNotifications: dismiss failed", err);
+                    }
+                    refresh(wrapper, false);
+                });
+                actions.appendChild(dismissBtn);
+            }
 
-            body.appendChild(actions);
+            if (item.isSeen && !isDismissed) {
+                var unreadBtn = document.createElement("button");
+                unreadBtn.type = "button";
+                unreadBtn.className = "editor-notification-item__dismiss";
+                unreadBtn.textContent = "Markeer als ongelezen";
+                unreadBtn.addEventListener("click", async function (e) {
+                    e.stopPropagation();
+                    try {
+                        await request("markUnseen", {
+                            method: "POST",
+                            body: new URLSearchParams({ notificationIdentifier: item.identifier }),
+                        });
+                    } catch (err) {
+                        console.warn("EditorNotifications: markUnseen failed", err);
+                    }
+                    refresh(wrapper, false);
+                });
+                actions.appendChild(unreadBtn);
+            }
+
+            if (actions.childNodes.length > 0) {
+                body.appendChild(actions);
+            }
             article.appendChild(body);
 
             // Toggle expand on header click
@@ -356,6 +414,17 @@
 
             list.appendChild(article);
         });
+
+        // Toggle dismissed notifications button
+        var toggleBtn = document.createElement("button");
+        toggleBtn.type = "button";
+        toggleBtn.className = "editor-notifications-panel__toggle-dismissed";
+        toggleBtn.textContent = showDismissed ? "Verberg verborgen notificaties" : "Toon verborgen notificaties";
+        toggleBtn.addEventListener("click", function () {
+            showDismissed = !showDismissed;
+            refresh(wrapper, false);
+        });
+        list.appendChild(toggleBtn);
     }
 
     function showToast(wrapper, count) {
@@ -391,7 +460,7 @@
     }
 
     async function refresh(wrapper, allowToast) {
-        var data = await request("active");
+        var data = await request("active" + (showDismissed ? "?includeDismissed=1" : ""));
         renderPanel(wrapper, data);
         if (allowToast && data.count > 0) {
             showToast(wrapper, data.count);
@@ -422,19 +491,33 @@
         }
     }
 
-    function start(attempt) {
-        attempt = attempt || 0;
-        boot().catch(function (err) {
-            console.warn("EditorNotifications: boot attempt " + attempt + " failed", err);
-        });
-
-        if (started || attempt >= START_RETRY_LIMIT) {
+    function start() {
+        // Try immediately — toolbar may already be rendered
+        boot().catch(function () {});
+        if (started) {
             return;
         }
 
+        // Watch for the Neos UI React app to render the toolbar
+        var target = document.getElementById("neos-application") || document.body;
+        var observer = new MutationObserver(function () {
+            if (started) {
+                observer.disconnect();
+                return;
+            }
+            boot().then(function () {
+                if (started) {
+                    observer.disconnect();
+                }
+            }).catch(function () {});
+        });
+
+        observer.observe(target, { childList: true, subtree: true });
+
+        // Safety timeout — stop observing after START_TIMEOUT
         window.setTimeout(function () {
-            start(attempt + 1);
-        }, START_RETRY_DELAY);
+            observer.disconnect();
+        }, START_TIMEOUT);
     }
 
     if (document.readyState === "loading") {

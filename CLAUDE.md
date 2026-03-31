@@ -9,7 +9,7 @@ Neos CMS backend module + content module plugin for editor notifications. Allows
 ```
 Classes/
 ├── Api/Controller/
-│   └── NotificationApiController.php    # JSON API for content module (read, markSeen, dismiss)
+│   └── NotificationApiController.php    # JSON API for content module (read, markSeen, dismiss, uploadImage)
 ├── Controller/Backend/Module/
 │   └── NotificationModuleController.php # Admin backend module (CRUD, publish, archive)
 ├── Domain/
@@ -25,7 +25,7 @@ Classes/
 Configuration/
 ├── Settings.yaml    # Backend module registration + Neos UI JS resource
 ├── Routes.yaml      # API route: /neos/notifications/api/{@action}
-└── Policy.yaml      # Privileges for admin (ManageNotifications) and editor (ReadNotifications)
+└── Policy.yaml      # Privileges for admin (ManageNotifications, UploadNotificationImage) and editor (ReadNotifications)
 
 Resources/
 ├── Private/Fusion/
@@ -68,40 +68,24 @@ Resources/
 - **Plugin.js silent errors** — all catch blocks now log via `console.warn`
 - **Plugin.js duplicate check** — removed redundant `isContentModule()` call
 - **Plugin.js UX redesign** — accordion layout (expand-on-click), no split detail panel, no "Beheer" link, "Verbergen" instead of "Niet meer tonen"
+- **Module.js execCommand removed** — all `document.execCommand()` calls replaced with Range API (bold → `<strong>`, italic → `<em>`, links/images via DOM insertion)
+- **Image upload server-side** — images now upload to Flow persistent resources via `/neos/notifications/api/uploadImage` instead of storing base64 data URLs in HTML
+- **Module.css !important removed** — all 6 `!important` overrides replaced with higher-specificity selectors using `.est-notifications-module` scope; added 768px tablet breakpoint
+- **Plugin.js MutationObserver** — toolbar detection now uses MutationObserver instead of polling with setTimeout; reacts instantly when Neos UI renders
+- **Policy.yaml scoped privileges** — `ReadNotifications` now matches only read/mark/dismiss actions; `UploadNotificationImage` is a separate admin-only privilege
 
 ## Remaining Issues
-
-### HIGH: Custom rich text editor (Module.js) is unreliable
-
-- Uses deprecated `document.execCommand()` — inconsistent behavior across browsers
-- Manual DOM manipulation for lists is fragile
-- Image upload stores base64 data URLs directly in content — large images create enormous HTML strings in database
-
-**Recommendation:** Replace with an established editor library (CKEditor, TinyMCE, Tiptap) or simplify to textarea with markdown.
-
-### MEDIUM: Module.css specificity wars
-
-- 6+ `!important` overrides fighting default Neos backend CSS
-- Only one breakpoint at 1100px, no mobile support
 
 ### MEDIUM: Weak HTML sanitization in service
 
 `sanitizeContent()` (NotificationService.php:211-218) uses regex-based cleaning. Can be bypassed with nested tags or encoded entities. Consider `HTMLPurifier`.
 
-### LOW: Plugin.js toolbar detection is fragile
-
-Uses `[class*="primaryToolbar"]` CSS class substring matching on Neos UI React components — breaks if Neos UI changes class naming.
-
-### LOW: Policy.yaml naming mismatch
-
-`ReadNotifications` privilege matches `.*Action()` — grants editors write access to `markSeen` and `dismiss`. Functionally correct but misleading name.
-
 ## Development Notes
 
 - Backend module runs at `/neos/administration/notifications`
-- API endpoint: `/neos/notifications/api/{action}` (active, unreadCount, markSeen, dismiss)
+- API endpoint: `/neos/notifications/api/{action}` (active, unreadCount, markSeen, dismiss, uploadImage)
 - CSRF token: read from `[data-csrf-token]` attribute (Neos UI puts it on `#appContainer`)
-- Plugin.js retries boot every 500ms up to 20 times (10s window) to wait for Neos UI to render
+- Plugin.js uses MutationObserver on `#neos-application` to detect toolbar (15s timeout)
 - Notifications are sorted: unread first, then by publishedAt descending
 - Expand state persists across 60s poll refreshes via `expandedItemId`
 - Only drafts can be deleted; published notifications must be archived first

@@ -252,7 +252,7 @@ class NotificationModuleController extends AbstractModuleController
     {
         return [
             'title' => $notification->getTitle(),
-            'content' => $notification->getContent(),
+            'content' => $notification->getContentMarkdown(),
             'showFrom' => $notification->getShowFrom()?->format('Y-m-d\TH:i') ?? '',
             'showUntil' => $notification->getShowUntil()?->format('Y-m-d\TH:i') ?? '',
         ];
