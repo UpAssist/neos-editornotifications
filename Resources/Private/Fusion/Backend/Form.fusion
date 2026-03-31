@@ -10,12 +10,27 @@ prototype(UpAssist.Neos.EditorNotifications:Backend.Form) < prototype(Neos.Fusio
             <header class="est-notifications-header">
                 <div>
                     <h1>{props.mode == 'new' ? 'Nieuwe notificatie' : props.notification.title}</h1>
-                    <p>Schrijf een duidelijk updatebericht voor redacteurs, inclusief inline screenshots.</p>
                 </div>
                 <Neos.Fusion:Link.Action href.action="index" class="neos-button">Terug naar overzicht</Neos.Fusion:Link.Action>
             </header>
 
             <UpAssist.Neos.EditorNotifications:Component.FlashMessages flashMessages={props.flashMessages} />
+
+            <div class={'est-statusBar est-statusBar--' + (props.notification ? props.notification.statusKey : 'new')} @if.isEditMode={props.mode == 'edit'}>
+                <span class="est-statusBar__label">
+                    <i class={'fas ' + (props.notification.statusKey == 'active' ? 'fa-check-circle' : (props.notification.statusKey == 'scheduled' ? 'fa-clock' : (props.notification.statusKey == 'expired' ? 'fa-exclamation-circle' : (props.notification.statusKey == 'archived' ? 'fa-archive' : 'fa-pencil-alt'))))} aria-hidden="true"></i>
+                    {props.notification.status}
+                </span>
+                <span class="est-statusBar__hint">{props.notification.statusHint}</span>
+            </div>
+
+            <div class="est-statusBar est-statusBar--new" @if.isNewMode={props.mode == 'new'}>
+                <span class="est-statusBar__label">
+                    <i class="fas fa-plus" aria-hidden="true"></i>
+                    Nieuw
+                </span>
+                <span class="est-statusBar__hint">Wordt opgeslagen als concept</span>
+            </div>
 
             <div class="neos-message neos-message-error" @if.hasValidationErrors={Array.length(props.validationErrors) > 0}>
                 <strong>Controleer het formulier</strong>
@@ -71,17 +86,11 @@ prototype(UpAssist.Neos.EditorNotifications:Backend.Form) < prototype(Neos.Fusio
                             </span>
                         </div>
                         <div class="est-editorToolbar">
-                            <button type="button" class="neos-button" data-editor-command="bold" title="Vet" aria-label="Vet">
+                            <button type="button" class="neos-button" data-editor-command="bold" title="Vet (Ctrl+B)" aria-label="Vet">
                                 <i class="fas fa-bold" aria-hidden="true"></i>
                             </button>
-                            <button type="button" class="neos-button" data-editor-command="italic" title="Cursief" aria-label="Cursief">
+                            <button type="button" class="neos-button" data-editor-command="italic" title="Cursief (Ctrl+I)" aria-label="Cursief">
                                 <i class="fas fa-italic" aria-hidden="true"></i>
-                            </button>
-                            <button type="button" class="neos-button" data-editor-command="insertUnorderedList" title="Lijst" aria-label="Lijst">
-                                <i class="fas fa-list-ul" aria-hidden="true"></i>
-                            </button>
-                            <button type="button" class="neos-button" data-editor-command="insertOrderedList" title="Nummering" aria-label="Nummering">
-                                <i class="fas fa-list-ol" aria-hidden="true"></i>
                             </button>
                             <button type="button" class="neos-button" data-editor-link="true" title="Link invoegen" aria-label="Link invoegen">
                                 <i class="fas fa-link" aria-hidden="true"></i>
@@ -131,61 +140,105 @@ prototype(UpAssist.Neos.EditorNotifications:Backend.Form) < prototype(Neos.Fusio
                     </div>
 
                     <div class="est-notifications-formActions">
-                        <button
-                            type="submit"
-                            formmethod="post"
-                            class="neos-button"
-                            @if.canPublish={props.notification}
-                        >
-                            <Neos.Fusion:UriBuilder
-                                action="publish"
-                                arguments.notificationIdentifier={props.notification ? props.notification.identifier : null}
-                                @path="attributes.formaction"
-                            />
-                            Publiceren
-                        </button>
-                        <button
-                            type="submit"
-                            formmethod="post"
-                            class="neos-button"
-                            @if.canUnpublish={props.notification && !props.notification.isDraft}
-                        >
-                            <Neos.Fusion:UriBuilder
-                                action="unpublish"
-                                arguments.notificationIdentifier={props.notification ? props.notification.identifier : null}
-                                @path="attributes.formaction"
-                            />
-                            Publicatie intrekken
-                        </button>
-                        <button
-                            type="submit"
-                            formmethod="post"
-                            class="neos-button"
-                            @if.canArchive={props.notification}
-                        >
-                            <Neos.Fusion:UriBuilder
-                                action="archive"
-                                arguments.notificationIdentifier={props.notification ? props.notification.identifier : null}
-                                @path="attributes.formaction"
-                            />
-                            Archiveren
-                        </button>
-                        <button
-                            type="submit"
-                            formmethod="post"
-                            class="neos-button neos-button-danger"
-                            @if.canDelete={props.notification && props.notification.isDraft}
-                        >
-                            <Neos.Fusion:UriBuilder
-                                action="delete"
-                                arguments.notificationIdentifier={props.notification ? props.notification.identifier : null}
-                                @path="attributes.formaction"
-                            />
-                            Verwijderen
-                        </button>
-                        <button type="submit" class="neos-button neos-button-primary">
-                            {props.mode == 'new' ? 'Opslaan' : 'Bijwerken'}
-                        </button>
+                        <Neos.Fusion:Fragment @if.isNew={props.mode == 'new'}>
+                            <button type="submit" class="neos-button">
+                                Opslaan als concept
+                            </button>
+                            <button
+                                type="submit"
+                                formmethod="post"
+                                class="neos-button neos-button-success"
+                            >
+                                <Neos.Fusion:UriBuilder
+                                    action="createAndPublish"
+                                    @path="attributes.formaction"
+                                />
+                                <i class="fas fa-paper-plane" aria-hidden="true"></i>
+                                Opslaan &amp; publiceren
+                            </button>
+                        </Neos.Fusion:Fragment>
+
+                        <Neos.Fusion:Fragment @if.isDraft={props.mode == 'edit' && props.notification.isDraft}>
+                            <button
+                                type="submit"
+                                formmethod="post"
+                                class="neos-button neos-button-danger est-confirmAction"
+                                data-confirm-message="Dit concept wordt permanent verwijderd. Weet je het zeker?"
+                            >
+                                <Neos.Fusion:UriBuilder
+                                    action="delete"
+                                    arguments.notificationIdentifier={props.notification.identifier}
+                                    @path="attributes.formaction"
+                                />
+                                <i class="fas fa-trash" aria-hidden="true"></i>
+                                Verwijderen
+                            </button>
+                            <button type="submit" class="neos-button">
+                                Concept bijwerken
+                            </button>
+                            <button
+                                type="submit"
+                                formmethod="post"
+                                class="neos-button neos-button-success"
+                            >
+                                <Neos.Fusion:UriBuilder
+                                    action="publish"
+                                    arguments.notificationIdentifier={props.notification.identifier}
+                                    @path="attributes.formaction"
+                                />
+                                <i class="fas fa-paper-plane" aria-hidden="true"></i>
+                                Publiceren
+                            </button>
+                        </Neos.Fusion:Fragment>
+
+                        <Neos.Fusion:Fragment @if.isPublished={props.mode == 'edit' && props.notification.isPublished && !props.notification.isArchived}>
+                            <button
+                                type="submit"
+                                formmethod="post"
+                                class="neos-button est-confirmAction"
+                                data-confirm-message="De notificatie wordt weer een concept en is niet meer zichtbaar voor redacteurs. Doorgaan?"
+                            >
+                                <Neos.Fusion:UriBuilder
+                                    action="unpublish"
+                                    arguments.notificationIdentifier={props.notification.identifier}
+                                    @path="attributes.formaction"
+                                />
+                                Publicatie intrekken
+                            </button>
+                            <button
+                                type="submit"
+                                formmethod="post"
+                                class="neos-button est-confirmAction"
+                                data-confirm-message="De notificatie wordt gearchiveerd en is niet meer zichtbaar. Doorgaan?"
+                            >
+                                <Neos.Fusion:UriBuilder
+                                    action="archive"
+                                    arguments.notificationIdentifier={props.notification.identifier}
+                                    @path="attributes.formaction"
+                                />
+                                <i class="fas fa-archive" aria-hidden="true"></i>
+                                Archiveren
+                            </button>
+                            <button type="submit" class="neos-button neos-button-primary">
+                                Bijwerken
+                            </button>
+                        </Neos.Fusion:Fragment>
+
+                        <Neos.Fusion:Fragment @if.isArchived={props.mode == 'edit' && props.notification.isArchived}>
+                            <button
+                                type="submit"
+                                formmethod="post"
+                                class="neos-button"
+                            >
+                                <Neos.Fusion:UriBuilder
+                                    action="unpublish"
+                                    arguments.notificationIdentifier={props.notification.identifier}
+                                    @path="attributes.formaction"
+                                />
+                                <i class="fas fa-undo" aria-hidden="true"></i>
+                                Terug naar concept
+                            </button>
+                        </Neos.Fusion:Fragment>
                     </div>
                 </form>
 

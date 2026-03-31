@@ -126,11 +126,30 @@ class NotificationModuleController extends AbstractModuleController
         $this->redirect('edit', null, null, ['notificationIdentifier' => $notificationIdentifier]);
     }
 
+    public function createAndPublishAction(string $title, string $content = '', string $showFrom = '', string $showUntil = ''): void
+    {
+        $showFromDate = $this->parseDateTime($showFrom);
+        $showUntilDate = $this->parseDateTime($showUntil);
+        $result = $this->notificationService->createNotification($title, $content, $showFromDate, $showUntilDate);
+
+        if ($result['errors'] !== []) {
+            $this->forward('new', null, null, [
+                'formData' => compact('title', 'content', 'showFrom', 'showUntil'),
+                'validationErrors' => $result['errors'],
+            ]);
+            return;
+        }
+
+        $this->notificationService->publish($result['notification']);
+        $this->addFlashMessage('Notificatie opgeslagen en gepubliceerd.');
+        $this->redirect('index');
+    }
+
     public function publishAction(string $notificationIdentifier): void
     {
         $this->notificationService->publish($this->requireNotification($notificationIdentifier));
         $this->addFlashMessage('Notificatie gepubliceerd.');
-        $this->redirect('index');
+        $this->redirect('edit', null, null, ['notificationIdentifier' => $notificationIdentifier]);
     }
 
     public function unpublishAction(string $notificationIdentifier): void
@@ -178,21 +197,33 @@ class NotificationModuleController extends AbstractModuleController
     {
         $identifier = $this->persistenceManager->getIdentifierByObject($notification);
         $now = new \DateTime();
+        $statusKey = 'draft';
         $status = 'Concept';
+        $statusHint = 'Niet zichtbaar voor redacteurs';
         if ($notification->isArchived()) {
+            $statusKey = 'archived';
             $status = 'Gearchiveerd';
+            $statusHint = 'Niet meer zichtbaar';
         } elseif ($notification->isScheduled($now)) {
+            $statusKey = 'scheduled';
             $status = 'Ingepland';
+            $statusHint = 'Zichtbaar vanaf ' . $notification->getShowFrom()->format('d-m-Y H:i');
         } elseif ($notification->isExpired($now)) {
+            $statusKey = 'expired';
             $status = 'Verlopen';
+            $statusHint = 'Zichtbaarheid afgelopen op ' . $notification->getShowUntil()->format('d-m-Y H:i');
         } elseif ($notification->isActive($now)) {
-            $status = 'Actief';
+            $statusKey = 'active';
+            $status = 'Gepubliceerd';
+            $statusHint = 'Zichtbaar voor redacteurs';
         }
 
         return [
             'identifier' => $identifier,
             'title' => $notification->getTitle(),
             'status' => $status,
+            'statusKey' => $statusKey,
+            'statusHint' => $statusHint,
             'createdAt' => $notification->getCreatedAt()->format('d-m-Y H:i'),
             'publishedAt' => $notification->getPublishedAt()?->format('d-m-Y H:i') ?? 'Nog niet gepubliceerd',
             'showWindow' => $this->formatShowWindow($notification),
