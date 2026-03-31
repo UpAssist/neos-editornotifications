@@ -75,10 +75,12 @@
             ".editor-notifications-badge__label { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0, 0, 0, 0); }" +
             ".editor-notifications-badge__count { position: absolute; top: 7px; right: 5px; min-width: 16px; height: 16px; padding: 0 4px; border-radius: 999px; background: #ff7a1a; color: #fff; font-size: 10px; font-weight: 700; line-height: 16px; text-align: center; box-sizing: border-box; }" +
             ".editor-notifications-badge__count.is-zero { display: none; }" +
-            // Backdrop
-            ".editor-notifications-backdrop { position: fixed; inset: 40px 0 0 0; background: rgba(0,0,0,.25); z-index: 1080; }" +
-            // Panel — slides in from right
-            ".editor-notifications-panel { position: fixed; top: 40px; right: 0; bottom: 0; width: " + PANEL_WIDTH + "px; max-width: calc(100vw - 40px); background: #222; color: #fff; border-left: 1px solid #3f3f3f; z-index: 1090; display: flex; flex-direction: column; }" +
+            // Backdrop — hidden by default, shown via .is-visible
+            ".editor-notifications-backdrop { display: none; position: fixed; inset: 40px 0 0 0; background: rgba(0,0,0,.25); z-index: 1080; }" +
+            ".editor-notifications-backdrop.is-visible { display: block; }" +
+            // Panel — hidden by default, shown via .is-visible
+            ".editor-notifications-panel { display: none; position: fixed; top: 40px; right: 0; bottom: 0; width: " + PANEL_WIDTH + "px; max-width: calc(100vw - 40px); background: #222; color: #fff; border-left: 1px solid #3f3f3f; z-index: 1090; flex-direction: column; }" +
+            ".editor-notifications-panel.is-visible { display: flex; }" +
             // Header
             ".editor-notifications-panel__header { display: flex; align-items: center; justify-content: space-between; padding: 0 4px 0 16px; height: 40px; min-height: 40px; border-bottom: 1px solid #3f3f3f; background: #1a1a1a; box-sizing: border-box; }" +
             ".editor-notifications-panel__header strong { font-size: 14px; font-weight: 600; }" +
@@ -95,7 +97,7 @@
             ".editor-notification-item.is-expanded > .editor-notification-item__header { background: #2a2a2a; }" +
             ".editor-notification-item__dot { width: 8px; height: 8px; border-radius: 50%; margin-top: 5px; flex: 0 0 8px; }" +
             ".editor-notification-item.is-unread .editor-notification-item__dot { background: #ff7a1a; }" +
-            ".editor-notification-item:not(.is-unread) .editor-notification-item__dot { background: transparent; }" +
+            ".editor-notification-item:not(.is-unread) .editor-notification-item__dot { background: #555; }" +
             ".editor-notification-item__info { flex: 1; min-width: 0; }" +
             ".editor-notification-item__title { display: block; font-size: 14px; font-weight: 600; margin-bottom: 2px; }" +
             ".editor-notification-item__date { display: block; color: #999; font-size: 12px; }" +
@@ -131,7 +133,7 @@
         badge.id = "editor-notifications-badge";
         badge.className = "editor-notifications-badge";
         badge.type = "button";
-        badge.hidden = true;
+        badge.style.display = "none";
 
         var badgeIcon = document.createElement("span");
         badgeIcon.className = "editor-notifications-badge__icon";
@@ -154,14 +156,12 @@
         var backdrop = document.createElement("div");
         backdrop.id = "editor-notifications-backdrop";
         backdrop.className = "editor-notifications-backdrop";
-        backdrop.hidden = true;
         wrapper.appendChild(backdrop);
 
         // Panel
         var panel = document.createElement("div");
         panel.id = "editor-notifications-panel";
         panel.className = "editor-notifications-panel";
-        panel.hidden = true;
 
         // Header
         var header = document.createElement("div");
@@ -201,15 +201,15 @@
             topBar.appendChild(wrapper);
         }
 
-        // Bind open/close once
+        // Bind open/close once — use CSS classes, not hidden attribute
         function setOpenState(isOpen) {
-            panel.hidden = !isOpen;
-            backdrop.hidden = !isOpen;
+            panel.classList.toggle("is-visible", isOpen);
+            backdrop.classList.toggle("is-visible", isOpen);
             badge.classList.toggle("is-open", isOpen);
         }
 
         badge.addEventListener("click", function () {
-            setOpenState(panel.hidden);
+            setOpenState(!panel.classList.contains("is-visible"));
         });
         closeBtn.addEventListener("click", function () {
             setOpenState(false);
@@ -229,7 +229,7 @@
 
         countEl.textContent = String(data.count);
         countEl.className = "editor-notifications-badge__count" + (data.count === 0 ? " is-zero" : "");
-        badge.hidden = data.items.length === 0 && data.count === 0;
+        badge.style.display = (data.items.length === 0 && data.count === 0) ? "none" : "";
         countLabel.textContent = data.count > 0 ? " \u2014 " + data.count + " ongelezen" : "";
 
         // Clear list
@@ -376,11 +376,11 @@
         toast.appendChild(sub);
 
         toast.addEventListener("click", function () {
-            var panel = wrapper.querySelector("#editor-notifications-panel");
+            var panelEl = wrapper.querySelector("#editor-notifications-panel");
             var backdropEl = wrapper.querySelector("#editor-notifications-backdrop");
             var badgeEl = wrapper.querySelector("#editor-notifications-badge");
-            if (panel) panel.hidden = false;
-            if (backdropEl) backdropEl.hidden = false;
+            if (panelEl) panelEl.classList.add("is-visible");
+            if (backdropEl) backdropEl.classList.add("is-visible");
             if (badgeEl) badgeEl.classList.add("is-open");
             toast.remove();
         });
