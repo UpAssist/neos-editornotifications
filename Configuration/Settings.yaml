@@ -12,11 +12,9 @@ Neos:
             privilegeTarget: 'UpAssist.Neos.EditorNotifications:Backend.Module.Administration.Notifications'
             additionalResources:
               javaScripts:
-                'UpAssist.Neos.EditorNotifications:Module':
-                  resource: 'resource://UpAssist.Neos.EditorNotifications/Public/JavaScript/Module/Module.js'
+                - 'resource://UpAssist.Neos.EditorNotifications/Public/JavaScript/Module/Module.js'
               styleSheets:
-                'UpAssist.Neos.EditorNotifications:Module':
-                  resource: 'resource://UpAssist.Neos.EditorNotifications/Public/Styles/Module.css'
+                - 'resource://UpAssist.Neos.EditorNotifications/Public/Styles/Module.css'
     userInterface:
       translation:
         autoInclude:
@@ -28,6 +26,15 @@ Neos:
           'UpAssist.Neos.EditorNotifications:Plugin':
             resource: '${"resource://UpAssist.Neos.EditorNotifications/Public/JavaScript/NotificationPlugin/Plugin.js"}'
   Flow:
+    security:
+      authentication:
+        providers:
+          'Neos.Neos:Backend':
+            requestPatterns:
+              'UpAssist.Neos.EditorNotifications:ApiControllers':
+                pattern: 'ControllerObjectName'
+                patternOptions:
+                  controllerObjectNamePattern: 'UpAssist\Neos\EditorNotifications\Api\Controller\.*'
     mvc:
       routes:
         'UpAssist.Neos.EditorNotifications':

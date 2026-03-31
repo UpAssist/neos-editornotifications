@@ -197,6 +197,8 @@ class NotificationModuleController extends AbstractModuleController
             'publishedAt' => $notification->getPublishedAt()?->format('d-m-Y H:i') ?? 'Nog niet gepubliceerd',
             'showWindow' => $this->formatShowWindow($notification),
             'isDraft' => $notification->isDraft(),
+            'isArchived' => $notification->isArchived(),
+            'isPublished' => !$notification->isDraft(),
         ];
     }
 

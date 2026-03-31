@@ -3,5 +3,6 @@
   uriPattern: 'neos/notifications/api/{@action}'
   defaults:
     '@package': 'UpAssist.Neos.EditorNotifications'
+    '@subpackage': 'Api'
     '@controller': 'NotificationApi'
     '@format': 'json'

@@ -1,4 +1,4 @@
-UpAssist.Neos.EditorNotifications.NotificationModuleController {
+UpAssist.Neos.EditorNotifications.Backend.Module.NotificationModuleController {
     index = UpAssist.Neos.EditorNotifications:Backend.Index
     new = UpAssist.Neos.EditorNotifications:Backend.Form
     edit = UpAssist.Neos.EditorNotifications:Backend.Form

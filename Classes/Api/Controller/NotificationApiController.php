@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace UpAssist\Neos\EditorNotifications\Controller\Api;
+namespace UpAssist\Neos\EditorNotifications\Api\Controller;
 
 use Neos\Flow\Annotations as Flow;
 use Neos\Flow\Mvc\Controller\ActionController;

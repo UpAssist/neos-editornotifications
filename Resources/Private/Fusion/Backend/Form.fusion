@@ -32,6 +32,8 @@ prototype(UpAssist.Neos.EditorNotifications:Backend.Form) < prototype(Neos.Fusio
                     class="est-notifications-form"
                     data-notification-editor="true"
                     data-preview-target="notification-preview"
+                    data-preview-title-target="notification-preview-title"
+                    data-preview-meta-target="notification-preview-meta"
                 >
                     <Neos.Fusion:UriBuilder
                         action={props.mode == 'new' ? 'create' : 'update'}
@@ -39,45 +41,96 @@ prototype(UpAssist.Neos.EditorNotifications:Backend.Form) < prototype(Neos.Fusio
                         @path="attributes.action"
                     />
                     <input type="hidden" name="__csrfToken" value={Security.csrfToken()} />
-                    <input type="hidden" name="notificationIdentifier" value={props.notification ? props.notification.identifier : ''} @if.hasNotification={props.notification} />
+                    <input type="hidden" name="moduleArguments[notificationIdentifier]" value={props.notification ? props.notification.identifier : ''} @if.hasNotification={props.notification} />
 
                     <label class="est-field">
-                        <span>Titel</span>
-                        <input type="text" name="title" value={props.formData.title} required="required" />
+                        <span>
+                            Titel
+                            <span class="est-help" tabindex="0">
+                                <i class="fas fa-question-circle neos-help-message-icon" aria-hidden="true"></i>
+                                <span class="est-helpText">Gebruik een korte, scanbare titel zodat redacteurs meteen zien waar de update over gaat.</span>
+                            </span>
+                        </span>
+                        <input
+                            type="text"
+                            name="moduleArguments[title]"
+                            value={props.formData.title}
+                            required="required"
+                            placeholder="Bijvoorbeeld: Nieuwe reviewworkflow staat live"
+                        />
                     </label>
 
                     <div class="est-field">
-                        <span>Bericht</span>
-                        <div class="est-editorToolbar">
-                            <button type="button" class="neos-button" data-editor-command="bold">Vet</button>
-                            <button type="button" class="neos-button" data-editor-command="italic">Cursief</button>
-                            <button type="button" class="neos-button" data-editor-command="insertUnorderedList">Lijst</button>
-                            <button type="button" class="neos-button" data-editor-command="insertOrderedList">Nummering</button>
-                            <button type="button" class="neos-button" data-editor-link="true">Link</button>
-                            <button type="button" class="neos-button" data-editor-image-url="true">Afbeelding URL</button>
-                            <button type="button" class="neos-button" data-editor-upload="true">Screenshot uploaden</button>
+                        <div class="est-fieldHeading">
+                            <span>
+                                Bericht
+                                <span class="est-help" tabindex="0">
+                                    <i class="fas fa-question-circle neos-help-message-icon" aria-hidden="true"></i>
+                                    <span class="est-helpText">Vertel wat er is veranderd, waarom het relevant is en wat redacteurs ermee moeten doen.</span>
+                                </span>
+                            </span>
                         </div>
-                        <div class="est-editor" contenteditable="true" data-editor-surface="true"></div>
-                        <textarea name="content" class="est-editorSource" data-editor-source="true">{props.formData.content}</textarea>
+                        <div class="est-editorToolbar">
+                            <button type="button" class="neos-button" data-editor-command="bold" title="Vet" aria-label="Vet">
+                                <i class="fas fa-bold" aria-hidden="true"></i>
+                            </button>
+                            <button type="button" class="neos-button" data-editor-command="italic" title="Cursief" aria-label="Cursief">
+                                <i class="fas fa-italic" aria-hidden="true"></i>
+                            </button>
+                            <button type="button" class="neos-button" data-editor-command="insertUnorderedList" title="Lijst" aria-label="Lijst">
+                                <i class="fas fa-list-ul" aria-hidden="true"></i>
+                            </button>
+                            <button type="button" class="neos-button" data-editor-command="insertOrderedList" title="Nummering" aria-label="Nummering">
+                                <i class="fas fa-list-ol" aria-hidden="true"></i>
+                            </button>
+                            <button type="button" class="neos-button" data-editor-link="true" title="Link invoegen" aria-label="Link invoegen">
+                                <i class="fas fa-link" aria-hidden="true"></i>
+                            </button>
+                            <button type="button" class="neos-button" data-editor-image-url="true" title="Afbeelding via URL" aria-label="Afbeelding via URL">
+                                <i class="fas fa-image" aria-hidden="true"></i>
+                            </button>
+                            <button type="button" class="neos-button" data-editor-upload="true" title="Screenshot uploaden" aria-label="Screenshot uploaden">
+                                <i class="fas fa-upload" aria-hidden="true"></i>
+                            </button>
+                            <span class="est-help est-help--toolbar" tabindex="0">
+                                <i class="fas fa-question-circle neos-help-message-icon" aria-hidden="true"></i>
+                                <span class="est-helpText">Gebruik de iconen om tekst op te maken, een link toe te voegen of een screenshot inline in het bericht te plaatsen.</span>
+                            </span>
+                        </div>
+                        <div
+                            class="est-editor"
+                            contenteditable="true"
+                            data-editor-surface="true"
+                            data-placeholder="Start met een korte samenvatting. Voeg daarna eventueel bullets, links of screenshots toe."
+                        ></div>
+                        <textarea name="moduleArguments[content]" class="est-editorSource" data-editor-source="true">{props.formData.content}</textarea>
                         <input type="file" accept="image/*" class="est-editorUpload" data-editor-upload-input="true" />
-                        <small>Je kunt tekst opmaken en inline screenshots toevoegen. Uploads worden als inline afbeelding in het bericht opgeslagen.</small>
                     </div>
 
                     <div class="est-fieldGrid">
                         <label class="est-field">
-                            <span>Toon vanaf</span>
-                            <input type="datetime-local" name="showFrom" value={props.formData.showFrom} />
+                            <span>
+                                Toon vanaf
+                                <span class="est-help" tabindex="0">
+                                    <i class="fas fa-question-circle neos-help-message-icon" aria-hidden="true"></i>
+                                    <span class="est-helpText">Laat leeg om de notificatie direct zichtbaar te maken zodra je publiceert.</span>
+                                </span>
+                            </span>
+                            <input type="datetime-local" name="moduleArguments[showFrom]" value={props.formData.showFrom} />
                         </label>
                         <label class="est-field">
-                            <span>Toon tot</span>
-                            <input type="datetime-local" name="showUntil" value={props.formData.showUntil} />
+                            <span>
+                                Toon tot
+                                <span class="est-help" tabindex="0">
+                                    <i class="fas fa-question-circle neos-help-message-icon" aria-hidden="true"></i>
+                                    <span class="est-helpText">Optioneel. Handig voor tijdelijke mededelingen of release-updates.</span>
+                                </span>
+                            </span>
+                            <input type="datetime-local" name="moduleArguments[showUntil]" value={props.formData.showUntil} />
                         </label>
                     </div>
 
                     <div class="est-notifications-formActions">
-                        <button type="submit" class="neos-button neos-button-primary">
-                            {props.mode == 'new' ? 'Opslaan' : 'Bijwerken'}
-                        </button>
                         <button
                             type="submit"
                             formmethod="post"
@@ -130,12 +183,22 @@ prototype(UpAssist.Neos.EditorNotifications:Backend.Form) < prototype(Neos.Fusio
                             />
                             Verwijderen
                         </button>
+                        <button type="submit" class="neos-button neos-button-primary">
+                            {props.mode == 'new' ? 'Opslaan' : 'Bijwerken'}
+                        </button>
                     </div>
                 </form>
 
                 <aside class="est-notifications-preview">
-                    <h2>Preview</h2>
-                    <div id="notification-preview" class="est-notifications-previewCanvas"></div>
+                    <div class="est-previewHeader">
+                        <h2>Preview</h2>
+                        <p>Zo leest deze notificatie straks voor redacteurs.</p>
+                    </div>
+                    <div class="est-notifications-previewCard">
+                        <div class="est-notifications-previewMeta" id="notification-preview-meta">Nog niet ingepland</div>
+                        <h3 id="notification-preview-title">Nog geen titel ingevuld</h3>
+                        <div id="notification-preview" class="est-notifications-previewCanvas"></div>
+                    </div>
                 </aside>
             </div>
         </div>

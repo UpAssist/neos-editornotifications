@@ -13,7 +13,6 @@ prototype(UpAssist.Neos.EditorNotifications:Backend.Index) < prototype(Neos.Fusi
             <header class="est-notifications-header">
                 <div>
                     <h1>Redacteurnotificaties</h1>
-                    <p>Beheer centrale mededelingen voor redacteurs in de content module.</p>
                 </div>
                 <Neos.Fusion:Link.Action href.action="new" class="neos-button neos-button-primary">Nieuwe notificatie</Neos.Fusion:Link.Action>
             </header>
@@ -31,6 +30,12 @@ prototype(UpAssist.Neos.EditorNotifications:Backend.Index) < prototype(Neos.Fusi
                             {item.label}
                         </Neos.Fusion:Link.Action>
                     </Neos.Fusion:Loop>
+                    <span class="est-help est-help--filters" tabindex="0" aria-label="Uitleg over verlopen en archief">
+                        <i class="fas fa-question-circle neos-help-message-icon" aria-hidden="true"></i>
+                        <span class="est-helpText">
+                            "Verlopen" notificaties zijn automatisch niet meer actief doordat hun zichtbaarheid is afgelopen. "Archief" is voor notificaties die je handmatig afsluit als admin.
+                        </span>
+                    </span>
                 </div>
                 <span class="est-notifications-count">{props.totalCount} items</span>
             </div>
@@ -57,13 +62,37 @@ prototype(UpAssist.Neos.EditorNotifications:Backend.Index) < prototype(Neos.Fusi
                                 <td>{item.publishedAt}</td>
                                 <td>{item.showWindow}</td>
                                 <td class="est-notifications-actions">
-                                    <Neos.Fusion:Link.Action
-                                        href.action="edit"
-                                        href.arguments.notificationIdentifier={item.identifier}
-                                        class="neos-button"
-                                    >
-                                        Bewerken
-                                    </Neos.Fusion:Link.Action>
+                                    <div class="est-notifications-actionsInner">
+                                        <Neos.Fusion:Link.Action
+                                            href.action="edit"
+                                            href.arguments.notificationIdentifier={item.identifier}
+                                            class="neos-button est-notifications-actionButton"
+                                            title="Bewerken"
+                                            aria-label="Bewerken"
+                                        >
+                                            <i class="fas fa-pencil-alt" aria-hidden="true"></i>
+                                        </Neos.Fusion:Link.Action>
+                                        <Neos.Fusion:Link.Action
+                                            href.action="archive"
+                                            href.arguments.notificationIdentifier={item.identifier}
+                                            class="neos-button est-notifications-actionButton"
+                                            title="Archiveren"
+                                            aria-label="Archiveren"
+                                            @if.canArchive={!item.isArchived}
+                                        >
+                                            <i class="fas fa-archive" aria-hidden="true"></i>
+                                        </Neos.Fusion:Link.Action>
+                                        <Neos.Fusion:Link.Action
+                                            href.action="delete"
+                                            href.arguments.notificationIdentifier={item.identifier}
+                                            class="neos-button est-notifications-actionButton"
+                                            title="Verwijderen"
+                                            aria-label="Verwijderen"
+                                            @if.canDelete={item.isDraft}
+                                        >
+                                            <i class="fas fa-trash" aria-hidden="true"></i>
+                                        </Neos.Fusion:Link.Action>
+                                    </div>
                                 </td>
                             </tr>
                         </Neos.Fusion:Loop>

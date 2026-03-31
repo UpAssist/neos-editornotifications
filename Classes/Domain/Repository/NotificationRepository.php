@@ -60,14 +60,14 @@ class NotificationRepository extends Repository
         $now = new \DateTime();
         $query->matching(
             $query->logicalAnd(
-                $query->isNotNull('publishedAt'),
-                $query->isNull('archivedAt'),
+                $query->logicalNot($query->equals('publishedAt', null)),
+                $query->equals('archivedAt', null),
                 $query->logicalOr(
-                    $query->isNull('showFrom'),
+                    $query->equals('showFrom', null),
                     $query->lessThanOrEqual('showFrom', $now)
                 ),
                 $query->logicalOr(
-                    $query->isNull('showUntil'),
+                    $query->equals('showUntil', null),
                     $query->greaterThanOrEqual('showUntil', $now)
                 )
             )
@@ -83,27 +83,27 @@ class NotificationRepository extends Repository
     private function buildFilterConstraint(QueryInterface $query, string $filter, \DateTime $now)
     {
         return match ($filter) {
-            'draft' => $query->isNull('publishedAt'),
-            'archived' => $query->isNotNull('archivedAt'),
+            'draft' => $query->equals('publishedAt', null),
+            'archived' => $query->logicalNot($query->equals('archivedAt', null)),
             'scheduled' => $query->logicalAnd(
-                $query->isNotNull('publishedAt'),
-                $query->isNull('archivedAt'),
+                $query->logicalNot($query->equals('publishedAt', null)),
+                $query->equals('archivedAt', null),
                 $query->greaterThan('showFrom', $now)
             ),
             'expired' => $query->logicalAnd(
-                $query->isNotNull('publishedAt'),
-                $query->isNull('archivedAt'),
+                $query->logicalNot($query->equals('publishedAt', null)),
+                $query->equals('archivedAt', null),
                 $query->lessThan('showUntil', $now)
             ),
             'active' => $query->logicalAnd(
-                $query->isNotNull('publishedAt'),
-                $query->isNull('archivedAt'),
+                $query->logicalNot($query->equals('publishedAt', null)),
+                $query->equals('archivedAt', null),
                 $query->logicalOr(
-                    $query->isNull('showFrom'),
+                    $query->equals('showFrom', null),
                     $query->lessThanOrEqual('showFrom', $now)
                 ),
                 $query->logicalOr(
-                    $query->isNull('showUntil'),
+                    $query->equals('showUntil', null),
                     $query->greaterThanOrEqual('showUntil', $now)
                 )
             ),

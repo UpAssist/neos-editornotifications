@@ -3,7 +3,7 @@ privilegeTargets:
     'UpAssist.Neos.EditorNotifications:ManageNotifications':
       matcher: 'method(UpAssist\Neos\EditorNotifications\Controller\Backend\Module\NotificationModuleController->.*Action())'
     'UpAssist.Neos.EditorNotifications:ReadNotifications':
-      matcher: 'method(UpAssist\Neos\EditorNotifications\Controller\Api\NotificationApiController->.*Action())'
+      matcher: 'method(UpAssist\Neos\EditorNotifications\Api\Controller\NotificationApiController->.*Action())'
 
   'Neos\Neos\Security\Authorization\Privilege\ModulePrivilege':
     'UpAssist.Neos.EditorNotifications:Backend.Module.Administration.Notifications':
