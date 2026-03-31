@@ -59,82 +59,49 @@ Resources/
 - Policy permissions (editors can read + mark/dismiss via `ReadNotifications` privilege)
 - Package route positioning (`before Neos.Neos` in Settings.yaml)
 
-## Known Issues
+## Resolved Issues
 
-### CRITICAL: Plugin.js likely not loading in content module
+- **Settings.yaml Eel wrapper** — resource URI was `${"resource://..."}`, Eel is not evaluated in YAML Settings. Fixed: plain `resource://...`
+- **CSRF token selector** — was `.neos-user-menu[data-csrf-token]` but Neos UI (React) puts it on `#appContainer`. Fixed: generic `[data-csrf-token]`
+- **Plugin.js XSS** — titles now use `textContent`, content uses `sanitizeHtml()` defense-in-depth
+- **Plugin.js memory leak** — open/close handlers now bound once in `createShell()`, not on every poll
+- **Plugin.js silent errors** — all catch blocks now log via `console.warn`
+- **Plugin.js duplicate check** — removed redundant `isContentModule()` call
+- **Plugin.js UX redesign** — accordion layout (expand-on-click), no split detail panel, no "Beheer" link, "Verbergen" instead of "Niet meer tonen"
 
-**File:** `Configuration/Settings.yaml:27`
-
-```yaml
-resource: '${"resource://UpAssist.Neos.EditorNotifications/Public/JavaScript/NotificationPlugin/Plugin.js"}'
-```
-
-The resource URI is wrapped in Eel syntax `${"..."}`. Eel expressions are NOT evaluated in YAML Settings — only in Fusion. The Neos UI resource handler expects plain `resource://...` format. This likely prevents Plugin.js from loading in the content module entirely.
-
-**Fix:** Change to `resource: 'resource://UpAssist.Neos.EditorNotifications/Public/JavaScript/NotificationPlugin/Plugin.js'`
+## Remaining Issues
 
 ### HIGH: Custom rich text editor (Module.js) is unreliable
 
 - Uses deprecated `document.execCommand()` — inconsistent behavior across browsers
-- Manual DOM manipulation for lists (lines 94-138) is fragile
-- No fallback when commands fail silently
+- Manual DOM manipulation for lists is fragile
 - Image upload stores base64 data URLs directly in content — large images create enormous HTML strings in database
-- Selection/range management can reference detached DOM nodes after external changes
 
 **Recommendation:** Replace with an established editor library (CKEditor, TinyMCE, Tiptap) or simplify to textarea with markdown.
-
-### HIGH: Plugin.js content module integration issues
-
-- **Fragile toolbar detection** (lines 34-39): uses `[class*="primaryToolbar"]` CSS class substring matching on Neos UI React components — breaks on any Neos UI class name change
-- **XSS vulnerability** (lines 110, 141-144): `innerHTML` renders unsanitized notification `title` and `content`
-- **Memory leak** (lines 132-137): `badge.onclick` and close-button handler are reassigned on every `renderPanel()` call (every 60s poll cycle) without cleanup
-- **Duplicate guard** (lines 188+192): `isContentModule()` is checked twice
-- **Silent errors** (lines 208-215): all errors are swallowed without logging — impossible to debug in production
-- **Hardcoded locale** (line 111): `toLocaleString("nl-NL")` — not configurable for multi-language setups
 
 ### MEDIUM: Module.css specificity wars
 
 - 6+ `!important` overrides fighting default Neos backend CSS
 - Only one breakpoint at 1100px, no mobile support
-- Iteratively patched, resulting in messy overrides
 
 ### MEDIUM: Weak HTML sanitization in service
 
-`sanitizeContent()` (NotificationService.php:211-218) uses regex-based cleaning:
-- Strips `<script>` and `<style>` tags
-- Removes `on*` event handlers and `javascript:` URIs
-- Can be bypassed with nested tags, encoded entities, or edge cases
+`sanitizeContent()` (NotificationService.php:211-218) uses regex-based cleaning. Can be bypassed with nested tags or encoded entities. Consider `HTMLPurifier`.
 
-Consider using a proper HTML sanitizer library (e.g., `HTMLPurifier`).
+### LOW: Plugin.js toolbar detection is fragile
+
+Uses `[class*="primaryToolbar"]` CSS class substring matching on Neos UI React components — breaks if Neos UI changes class naming.
 
 ### LOW: Policy.yaml naming mismatch
 
-`ReadNotifications` privilege matches `.*Action()` — grants editors write access to `markSeen` and `dismiss` actions. Functionally correct but misleading. Consider splitting into `ReadNotifications` and `ManageReadState`.
-
-## What to Keep vs. Replace
-
-### Keep (solid foundation)
-- `Notification` and `NotificationReadState` domain models
-- `NotificationRepository` and `NotificationReadStateRepository`
-- `NotificationService` (business logic, read state management)
-- `NotificationModuleController` (CRUD, publish/archive flow)
-- `NotificationApiController` (JSON API structure)
-- Database migration (`Version20260331151406.php`)
-- `Routes.yaml`, `Policy.yaml` configuration
-- `Index.fusion` (backend notification list)
-- `FlashMessages.fusion`
-
-### Replace or heavily refactor
-- `Module.js` — replace custom editor with established library or simplify to textarea
-- `Plugin.js` — fix Settings.yaml first, then address XSS, memory leaks, error handling
-- `Module.css` — clean rewrite without specificity hacks
-- `Form.fusion` — update toolbar markup to match new editor choice
-- `Settings.yaml` line 27 — remove Eel wrapper from resource URI
+`ReadNotifications` privilege matches `.*Action()` — grants editors write access to `markSeen` and `dismiss`. Functionally correct but misleading name.
 
 ## Development Notes
 
 - Backend module runs at `/neos/administration/notifications`
 - API endpoint: `/neos/notifications/api/{action}` (active, unreadCount, markSeen, dismiss)
+- CSRF token: read from `[data-csrf-token]` attribute (Neos UI puts it on `#appContainer`)
 - Plugin.js retries boot every 500ms up to 20 times (10s window) to wait for Neos UI to render
 - Notifications are sorted: unread first, then by publishedAt descending
+- Expand state persists across 60s poll refreshes via `expandedItemId`
 - Only drafts can be deleted; published notifications must be archived first
