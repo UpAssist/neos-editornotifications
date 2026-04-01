@@ -9,13 +9,13 @@ Neos CMS backend module + content module plugin for editor notifications. Allows
 ```
 Classes/
 ├── Api/Controller/
-│   └── NotificationApiController.php    # JSON API for content module (active, unreadCount, markSeen, markUnseen, dismiss, uploadImage)
+│   └── NotificationApiController.php    # JSON API for content module (active, unreadCount, markSeen, markAllSeen, markUnseen, dismiss, removeForCurrentUser, uploadImage)
 ├── Controller/Backend/Module/
 │   └── NotificationModuleController.php # Admin backend module (CRUD, publish, unpublish, archive)
 ├── Domain/
 │   ├── Model/
 │   │   ├── Notification.php             # Title, contentMarkdown, content (HTML), showFrom/Until, publishedAt, archivedAt, createdBy
-│   │   └── NotificationReadState.php    # Per-user seen/dismissed state (ManyToOne → Notification + User)
+│   │   └── NotificationReadState.php    # Per-user seen/dismissed/removed state (ManyToOne → Notification + User)
 │   └── Repository/
 │       ├── NotificationRepository.php   # Filters: active, draft, scheduled, expired, archived; pagination support
 │       └── NotificationReadStateRepository.php
@@ -29,12 +29,12 @@ Configuration/
 
 Resources/
 ├── Private/Fusion/
-│   ├── Backend/Index.fusion   # Notification list with 5 filters + pagination (15 items/page)
+│   ├── Backend/Index.fusion   # Notification list with 5 filters + pagination (10 items/page)
 │   ├── Backend/Form.fusion    # Create/edit form with Markdown editor + live preview
 │   └── Component/FlashMessages.fusion
 └── Public/
     ├── JavaScript/Module/Module.js              # Markdown editor toolbar (bold, italic, lists, links, image upload)
-    ├── JavaScript/NotificationPlugin/Plugin.js  # Content module bell badge + slide-out accordion panel + toast
+    ├── JavaScript/NotificationPlugin/Plugin.js  # Content module bell badge + slide-out accordion panel
     └── Styles/Module.css                        # Admin module dark theme styling
 ```
 
@@ -48,6 +48,8 @@ Resources/
 6. Editor expands notification → auto-marked as seen via POST to `/neos/notifications/api/markSeen`
 7. Editor dismisses → POST to `/neos/notifications/api/dismiss`
 8. Editor can mark as unread again → POST to `/neos/notifications/api/markUnseen`
+9. Editor can mark all as read → POST to `/neos/notifications/api/markAllSeen`
+10. Editor can permanently remove a notification for themselves → POST to `/neos/notifications/api/removeForCurrentUser`
 
 ## Key Implementation Details
 
@@ -59,27 +61,31 @@ Resources/
 - Image upload: FormData POST to `/neos/notifications/api/uploadImage` with CSRF token, inserts `![alt](url)` on success
 
 ### Image Upload (Server-side)
-- API endpoint validates MIME type (must be `image/*`) and size (max 10 MB)
+
+- API endpoint validates MIME type (JPEG, PNG, GIF, WebP only) and size (max 10 MB)
 - Stores via Flow's `ResourceManager->importResourceFromContent()`
 - Returns public persistent resource URI (not data URLs)
 - Separate `UploadNotificationImage` privilege (admin-only)
 
 ### Content Module Plugin (Plugin.js)
 - MutationObserver on `#neos-application` to detect Neos UI toolbar (15s timeout)
-- Bell icon (40x40px) with animated unread count badge
+- Bell icon (40x40px) with unread count badge
 - Slide-out panel (320px, dark theme) with accordion layout (one expanded at a time)
 - Expand state persists across 60s poll refreshes via `expandedItemId`
-- Toast notification (bottom-right, 10s) when new notifications arrive
 - HTML sanitization: removes script/style/iframe, event handlers, javascript: URLs
-- "Verbergen" (dismiss) and "Mark as unread" buttons per notification
+- "Hide" (dismiss), "Mark as unread", "Unhide", and "Delete" (removeForCurrentUser) buttons per notification
+- "Mark all read" button in panel header
 - Toggle to show/hide dismissed notifications
+- Custom tooltip on action buttons
 
 ### Notification Lifecycle
-- **Draft** → created but not published (only drafts can be deleted)
+
+- **Draft** → created but not published
 - **Published** → `publishedAt` set, visible to editors if within show window
 - **Scheduled** → published but `showFrom` is in the future
 - **Expired** → published but `showUntil` is in the past
-- **Archived** → `archivedAt` set, hidden from editors (published notifications must be archived, not deleted)
+- **Archived** → `archivedAt` set, hidden from editors
+- Active notifications cannot be deleted; all other states (draft, archived, expired, scheduled) can be deleted
 
 ### Content Rendering
 - Markdown→HTML via League\CommonMark with `html_input: strip` and `allow_unsafe_links: false`
@@ -88,8 +94,8 @@ Resources/
 ### Security
 - CSRF token read from `[data-csrf-token]` attribute, sent via `X-Flow-Csrftoken` header
 - Admins: full CRUD + publish/archive + image upload (`ManageNotifications`, `UploadNotificationImage`)
-- Editors: read + mark seen/unseen + dismiss only (`ReadNotifications`)
-- Backend module privilege: `Backend.Module.Administration.Notifications`
+- Editors: read + mark seen/unseen + mark all seen + dismiss + remove for self (`ReadNotifications`)
+- Backend module privilege: `Backend.Module.Administration.Notifications` (registered under `management` in Settings.yaml)
 
 ## Resolved Issues
 
@@ -98,7 +104,7 @@ Resources/
 - **Plugin.js XSS** — titles use `textContent`, content uses `sanitizeHtml()`
 - **Plugin.js memory leak** — open/close handlers bound once in `createShell()`, not on every poll
 - **Plugin.js silent errors** — all catch blocks now log via `console.warn`
-- **Plugin.js UX redesign** — accordion layout, no split detail panel, "Verbergen" instead of "Niet meer tonen"
+- **Plugin.js UX redesign** — accordion layout, no split detail panel
 - **Module.js execCommand removed** — all `document.execCommand()` replaced with Range API
 - **Image upload server-side** — Flow persistent resources instead of base64 data URLs in HTML
 - **Module.css !important removed** — higher-specificity selectors with `.est-notifications-module` scope; 768px tablet breakpoint
@@ -108,11 +114,11 @@ Resources/
 
 ## Development Notes
 
-- Backend module: `/neos/administration/notifications`
+- Backend module: `/neos/management/notifications`
 - API endpoint: `/neos/notifications/api/{action}`
-- API actions: `active`, `unreadCount`, `markSeen`, `markUnseen`, `dismiss`, `uploadImage`
+- API actions: `active`, `unreadCount`, `markSeen`, `markAllSeen`, `markUnseen`, `dismiss`, `removeForCurrentUser`, `uploadImage`
 - Admin form: two-column layout (editor left, live preview right) with context-aware action buttons
 - List view: 5 filter tabs (active, scheduled, draft, expired, archive) with item count and color-coded status bars
-- Notifications sorted: unread first, then by publishedAt descending
-- Only drafts can be deleted; published must be archived first
-- Database: 2 tables + 2 Doctrine migrations (initial schema + contentMarkdown column)
+- Notifications sorted by publishedAt descending
+- Active notifications cannot be deleted; all other states can
+- Database: 2 tables + 3 Doctrine migrations

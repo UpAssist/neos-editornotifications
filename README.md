@@ -11,7 +11,6 @@ Admin-managed backend notifications for Neos CMS editors.
 - **Lifecycle management** — draft → published → archived, with publish/unpublish/archive actions
 - **Per-user read state** — tracks seen, dismissed, and removed state per editor
 - **Content module plugin** — bell icon badge with unread count, slide-out notification panel with accordion layout
-- **Toast notifications** — bottom-right toast when new notifications arrive
 - **Mark all read** — editors can mark all notifications as read at once
 - **Security** — role-based access: admins manage notifications and upload images, editors can only read/dismiss
 - **i18n** — Dutch and English translations
@@ -56,7 +55,7 @@ Resources/
 │   └── Translations/                                # Dutch (nl) and English (en) XLIFF
 └── Public/
     ├── JavaScript/Module/Module.js                  # Markdown editor with toolbar and image upload
-    ├── JavaScript/NotificationPlugin/Plugin.js      # Content module badge, panel, and toast
+    ├── JavaScript/NotificationPlugin/Plugin.js      # Content module badge and slide-out panel
     └── Styles/Module.css                            # Admin module dark theme styling
 ```
 
