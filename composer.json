@@ -1,7 +1,16 @@
 {
     "name": "upassist/neos-editornotifications",
-    "description": "Backend notifications for Neos editors",
+    "description": "Admin-managed backend notifications for Neos CMS editors",
+    "license": "MIT",
     "type": "neos-package",
+    "keywords": [
+        "neos",
+        "cms",
+        "notifications",
+        "editor",
+        "backend"
+    ],
+    "homepage": "https://github.com/UpAssist/neos-editornotifications",
     "require": {
         "neos/flow": "*",
         "neos/neos": "*",
