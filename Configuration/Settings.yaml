@@ -1,3 +1,94 @@
+UpAssist:
+  Neos:
+    Mcp:
+      entities:
+        notifications:
+          label: 'Editor Notifications'
+          className: 'UpAssist\Neos\EditorNotifications\Domain\Model\Notification'
+          repository: 'UpAssist\Neos\EditorNotifications\Domain\Repository\NotificationRepository'
+          service: 'UpAssist\Neos\EditorNotifications\Service\NotificationService'
+
+          fields:
+            title:
+              type: string
+              label: 'Title'
+              required: true
+              maxLength: 255
+            contentMarkdown:
+              type: markdown
+              label: 'Content (Markdown)'
+              description: 'Notification body in Markdown format. HTML is auto-generated on save.'
+            content:
+              type: text
+              label: 'Content (HTML)'
+              readOnly: true
+            createdAt:
+              type: datetime
+              label: 'Created at'
+              readOnly: true
+            publishedAt:
+              type: datetime
+              label: 'Published at'
+              nullable: true
+            showFrom:
+              type: datetime
+              label: 'Show from'
+              nullable: true
+            showUntil:
+              type: datetime
+              label: 'Show until'
+              nullable: true
+            archivedAt:
+              type: datetime
+              label: 'Archived at'
+              readOnly: true
+            createdBy:
+              type: reference
+              label: 'Created by'
+              targetEntity: 'Neos\Neos\Domain\Model\User'
+              readOnly: true
+
+          filters:
+            active:
+              label: 'Active notifications'
+              method: 'findActive'
+            byFilter:
+              label: 'Filter by status'
+              method: 'findByFilter'
+              parameters:
+                filter:
+                  type: string
+                  enum: [draft, active, scheduled, expired, archived]
+                  required: true
+                limit:
+                  type: integer
+                  default: 20
+                offset:
+                  type: integer
+                  default: 0
+
+          actions:
+            publish:
+              label: 'Publish notification'
+              method: 'publish'
+              serviceMethod: true
+              requiresEntity: true
+            unpublish:
+              label: 'Unpublish notification'
+              method: 'unpublish'
+              serviceMethod: true
+              requiresEntity: true
+            archive:
+              label: 'Archive notification'
+              method: 'archive'
+              serviceMethod: true
+              requiresEntity: true
+
+          serviceMethods:
+            create: 'createNotification'
+            update: 'updateNotification'
+            delete: 'delete'
+
 Neos:
   Neos:
     modules:
