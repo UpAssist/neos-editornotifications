@@ -85,9 +85,16 @@ UpAssist:
               requiresEntity: true
 
           serviceMethods:
-            create: 'createNotification'
-            update: 'updateNotification'
-            delete: 'delete'
+            create:
+              method: 'createNotification'
+              parameterMapping:
+                content: 'contentMarkdown'
+            update:
+              method: 'updateNotification'
+              parameterMapping:
+                content: 'contentMarkdown'
+            delete:
+              method: 'delete'
 
 Neos:
   Neos:
