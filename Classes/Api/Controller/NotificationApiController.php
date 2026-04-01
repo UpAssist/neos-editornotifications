@@ -55,33 +55,40 @@ class NotificationApiController extends ActionController
 
     public function markSeenAction(string $notificationIdentifier): void
     {
-        $notification = $this->notificationRepository->findByIdentifier($notificationIdentifier);
-        if ($notification instanceof Notification) {
+        $notification = $this->findActiveNotification($notificationIdentifier);
+        if ($notification !== null) {
             $this->notificationService->markSeen($notification);
         }
 
-        $this->view->assign('value', ['success' => $notification instanceof Notification]);
+        $this->view->assign('value', ['success' => $notification !== null]);
     }
 
     public function markUnseenAction(string $notificationIdentifier): void
     {
-        $notification = $this->notificationRepository->findByIdentifier($notificationIdentifier);
-        if ($notification instanceof Notification) {
+        $notification = $this->findActiveNotification($notificationIdentifier);
+        if ($notification !== null) {
             $this->notificationService->markUnseen($notification);
         }
 
-        $this->view->assign('value', ['success' => $notification instanceof Notification]);
+        $this->view->assign('value', ['success' => $notification !== null]);
     }
 
     public function dismissAction(string $notificationIdentifier): void
     {
-        $notification = $this->notificationRepository->findByIdentifier($notificationIdentifier);
-        if ($notification instanceof Notification) {
+        $notification = $this->findActiveNotification($notificationIdentifier);
+        if ($notification !== null) {
             $this->notificationService->dismiss($notification);
         }
 
-        $this->view->assign('value', ['success' => $notification instanceof Notification]);
+        $this->view->assign('value', ['success' => $notification !== null]);
     }
+
+    private const ALLOWED_MIME_TYPES = [
+        'image/jpeg' => '.jpg',
+        'image/png' => '.png',
+        'image/gif' => '.gif',
+        'image/webp' => '.webp',
+    ];
 
     public function uploadImageAction(): void
     {
@@ -90,29 +97,38 @@ class NotificationApiController extends ActionController
             return;
         }
 
-        $mediaType = $_FILES['file']['type'] ?? '';
-        if (!str_starts_with($mediaType, 'image/')) {
-            $this->view->assign('value', ['success' => false, 'error' => 'Only images are allowed']);
-            return;
-        }
-
         if ($_FILES['file']['size'] > 10 * 1024 * 1024) {
             $this->view->assign('value', ['success' => false, 'error' => 'File too large (max 10 MB)']);
             return;
         }
 
-        $content = file_get_contents($_FILES['file']['tmp_name']);
+        $tmpPath = $_FILES['file']['tmp_name'];
+        $detectedType = (new \finfo(FILEINFO_MIME_TYPE))->file($tmpPath);
+        if ($detectedType === false || !isset(self::ALLOWED_MIME_TYPES[$detectedType])) {
+            $this->view->assign('value', ['success' => false, 'error' => 'Only JPEG, PNG, GIF and WebP images are allowed']);
+            return;
+        }
+
+        $content = file_get_contents($tmpPath);
         if ($content === false) {
             $this->view->assign('value', ['success' => false, 'error' => 'Failed to read uploaded file']);
             return;
         }
 
-        $resource = $this->resourceManager->importResourceFromContent(
-            $content,
-            $_FILES['file']['name']
-        );
+        $safeFilename = bin2hex(random_bytes(8)) . self::ALLOWED_MIME_TYPES[$detectedType];
+        $resource = $this->resourceManager->importResourceFromContent($content, $safeFilename);
 
         $uri = $this->resourceManager->getPublicPersistentResourceUri($resource);
         $this->view->assign('value', ['success' => true, 'url' => (string)$uri]);
+    }
+
+    private function findActiveNotification(string $identifier): ?Notification
+    {
+        $notification = $this->notificationRepository->findByIdentifier($identifier);
+        if (!$notification instanceof Notification || !$notification->isActive(new \DateTime())) {
+            return null;
+        }
+
+        return $notification;
     }
 }
