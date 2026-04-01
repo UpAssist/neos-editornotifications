@@ -27,4 +27,21 @@ class NotificationReadStateRepository extends Repository
 
         return $query->execute()->getFirst();
     }
+
+    /**
+     * @return \Neos\Flow\Persistence\QueryResultInterface<NotificationReadState>
+     */
+    public function findByNotification(Notification $notification): \Neos\Flow\Persistence\QueryResultInterface
+    {
+        $query = $this->createQuery();
+        $query->matching($query->equals('notification', $notification));
+        return $query->execute();
+    }
+
+    public function removeByNotification(Notification $notification): void
+    {
+        foreach ($this->findByNotification($notification) as $readState) {
+            $this->remove($readState);
+        }
+    }
 }

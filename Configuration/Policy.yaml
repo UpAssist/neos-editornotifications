@@ -3,13 +3,13 @@ privilegeTargets:
     'UpAssist.Neos.EditorNotifications:ManageNotifications':
       matcher: 'method(UpAssist\Neos\EditorNotifications\Controller\Backend\Module\NotificationModuleController->.*Action())'
     'UpAssist.Neos.EditorNotifications:ReadNotifications':
-      matcher: 'method(UpAssist\Neos\EditorNotifications\Api\Controller\NotificationApiController->(active|unreadCount|markSeen|markUnseen|dismiss)Action())'
+      matcher: 'method(UpAssist\Neos\EditorNotifications\Api\Controller\NotificationApiController->(active|unreadCount|markSeen|markAllSeen|markUnseen|dismiss|removeForCurrentUser)Action())'
     'UpAssist.Neos.EditorNotifications:UploadNotificationImage':
       matcher: 'method(UpAssist\Neos\EditorNotifications\Api\Controller\NotificationApiController->uploadImageAction())'
 
   'Neos\Neos\Security\Authorization\Privilege\ModulePrivilege':
     'UpAssist.Neos.EditorNotifications:Backend.Module.Administration.Notifications':
-      matcher: 'administration/notifications'
+      matcher: 'management/notifications'
 
 roles:
   'Neos.Neos:Administrator':

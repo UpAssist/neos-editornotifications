@@ -5,9 +5,12 @@ declare(strict_types=1);
 namespace UpAssist\Neos\EditorNotifications\Api\Controller;
 
 use Neos\Flow\Annotations as Flow;
+use Neos\Flow\I18n\Locale;
+use Neos\Flow\I18n\Translator;
 use Neos\Flow\Mvc\Controller\ActionController;
 use Neos\Flow\Mvc\View\JsonView;
 use Neos\Flow\ResourceManagement\ResourceManager;
+use Neos\Neos\Domain\Service\UserService;
 use UpAssist\Neos\EditorNotifications\Domain\Model\Notification;
 use UpAssist\Neos\EditorNotifications\Domain\Repository\NotificationRepository;
 use UpAssist\Neos\EditorNotifications\Service\NotificationService;
@@ -41,6 +44,18 @@ class NotificationApiController extends ActionController
      */
     protected $resourceManager;
 
+    /**
+     * @Flow\Inject
+     * @var Translator
+     */
+    protected $translator;
+
+    /**
+     * @Flow\Inject
+     * @var UserService
+     */
+    protected $userService;
+
     public function unreadCountAction(): void
     {
         $data = $this->notificationService->getActiveNotificationsForCurrentUser();
@@ -50,6 +65,7 @@ class NotificationApiController extends ActionController
     public function activeAction(bool $includeDismissed = false): void
     {
         $data = $this->notificationService->getActiveNotificationsForCurrentUser($includeDismissed);
+        $data['translations'] = $this->getPluginTranslations();
         $this->view->assign('value', $data);
     }
 
@@ -73,11 +89,27 @@ class NotificationApiController extends ActionController
         $this->view->assign('value', ['success' => $notification !== null]);
     }
 
+    public function markAllSeenAction(): void
+    {
+        $this->notificationService->markAllSeen();
+        $this->view->assign('value', ['success' => true]);
+    }
+
     public function dismissAction(string $notificationIdentifier): void
     {
         $notification = $this->findActiveNotification($notificationIdentifier);
         if ($notification !== null) {
             $this->notificationService->dismiss($notification);
+        }
+
+        $this->view->assign('value', ['success' => $notification !== null]);
+    }
+
+    public function removeForCurrentUserAction(string $notificationIdentifier): void
+    {
+        $notification = $this->findActiveNotification($notificationIdentifier);
+        if ($notification !== null) {
+            $this->notificationService->removeForCurrentUser($notification);
         }
 
         $this->view->assign('value', ['success' => $notification !== null]);
@@ -120,6 +152,37 @@ class NotificationApiController extends ActionController
 
         $uri = $this->resourceManager->getPublicPersistentResourceUri($resource);
         $this->view->assign('value', ['success' => true, 'url' => (string)$uri]);
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    private function getPluginTranslations(): array
+    {
+        $keys = [
+            'plugin.notifications', 'plugin.close', 'plugin.unreadCount', 'plugin.empty',
+            'plugin.dismiss', 'plugin.markUnread', 'plugin.markRead', 'plugin.showHidden', 'plugin.hideHidden',
+            'plugin.markAllRead',
+            'plugin.newNotification', 'plugin.newNotifications', 'plugin.clickToView',
+            'plugin.unhide', 'plugin.delete', 'plugin.confirmDelete',
+        ];
+        $locale = new Locale($this->getInterfaceLanguage());
+        $translations = [];
+        foreach ($keys as $key) {
+            $translations[$key] = $this->translator->translateById(
+                $key, [], null, $locale, 'Main', 'UpAssist.Neos.EditorNotifications'
+            ) ?? $key;
+        }
+        return $translations;
+    }
+
+    private function getInterfaceLanguage(): string
+    {
+        $user = $this->userService->getCurrentUser();
+        if ($user !== null && $user->getPreferences() !== null) {
+            return $user->getPreferences()->getInterfaceLanguage() ?: 'en';
+        }
+        return 'en';
     }
 
     private function findActiveNotification(string $identifier): ?Notification

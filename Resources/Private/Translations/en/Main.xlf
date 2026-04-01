@@ -2,12 +2,151 @@
 <xliff version="1.2" xmlns="urn:oasis:names:tc:xliff:document:1.2">
   <file original="" product-name="UpAssist.Neos.EditorNotifications" source-language="en" datatype="plaintext">
     <body>
-      <trans-unit id="module.label">
-        <source>Editor notifications</source>
-      </trans-unit>
-      <trans-unit id="module.description">
-        <source>Manage backend notifications for editors</source>
-      </trans-unit>
+      <!-- Module -->
+      <trans-unit id="module.label"><source>Editor notifications</source></trans-unit>
+      <trans-unit id="module.description"><source>Manage backend notifications for editors</source></trans-unit>
+
+      <!-- Filters -->
+      <trans-unit id="filter.active"><source>Active</source></trans-unit>
+      <trans-unit id="filter.scheduled"><source>Scheduled</source></trans-unit>
+      <trans-unit id="filter.draft"><source>Drafts</source></trans-unit>
+      <trans-unit id="filter.expired"><source>Expired</source></trans-unit>
+      <trans-unit id="filter.archived"><source>Archive</source></trans-unit>
+
+      <!-- Status labels -->
+      <trans-unit id="status.draft"><source>Draft</source></trans-unit>
+      <trans-unit id="status.archived"><source>Archived</source></trans-unit>
+      <trans-unit id="status.scheduled"><source>Scheduled</source></trans-unit>
+      <trans-unit id="status.expired"><source>Expired</source></trans-unit>
+      <trans-unit id="status.published"><source>Published</source></trans-unit>
+
+      <!-- Status hints -->
+      <trans-unit id="statusHint.draft"><source>Not visible to editors</source></trans-unit>
+      <trans-unit id="statusHint.archived"><source>No longer visible</source></trans-unit>
+      <trans-unit id="statusHint.scheduled"><source>Visible from {0}</source></trans-unit>
+      <trans-unit id="statusHint.expired"><source>Visibility ended on {0}</source></trans-unit>
+      <trans-unit id="statusHint.published"><source>Visible to editors</source></trans-unit>
+      <trans-unit id="statusHint.notPublished"><source>Not yet published</source></trans-unit>
+
+      <!-- Flash messages -->
+      <trans-unit id="flash.created"><source>Notification saved.</source></trans-unit>
+      <trans-unit id="flash.updated"><source>Notification updated.</source></trans-unit>
+      <trans-unit id="flash.createdAndPublished"><source>Notification saved and published.</source></trans-unit>
+      <trans-unit id="flash.published"><source>Notification published.</source></trans-unit>
+      <trans-unit id="flash.unpublished"><source>Publication revoked.</source></trans-unit>
+      <trans-unit id="flash.archived"><source>Notification archived.</source></trans-unit>
+      <trans-unit id="flash.deleted"><source>Notification deleted.</source></trans-unit>
+      <trans-unit id="flash.cannotDeleteActive"><source>Active notifications cannot be deleted. Archive the notification first.</source></trans-unit>
+
+      <!-- Validation -->
+      <trans-unit id="validation.titleRequired"><source>Title is required.</source></trans-unit>
+      <trans-unit id="validation.showUntilBeforeShowFrom"><source>Show until must be later than show from.</source></trans-unit>
+
+      <!-- Index page -->
+      <trans-unit id="index.title"><source>Editor notifications</source></trans-unit>
+      <trans-unit id="index.newButton"><source>New notification</source></trans-unit>
+      <trans-unit id="index.helpAriaLabel"><source>Explanation of expired and archive</source></trans-unit>
+      <trans-unit id="index.helpText"><source>"Expired" notifications are automatically no longer active because their visibility has ended. "Archive" is for notifications you manually close as an admin.</source></trans-unit>
+      <trans-unit id="index.itemCount"><source>{0} items</source></trans-unit>
+      <trans-unit id="index.empty"><source>No notifications found for this filter.</source></trans-unit>
+
+      <!-- Table headers -->
+      <trans-unit id="table.title"><source>Title</source></trans-unit>
+      <trans-unit id="table.status"><source>Status</source></trans-unit>
+      <trans-unit id="table.publication"><source>Publication</source></trans-unit>
+      <trans-unit id="table.visibility"><source>Visibility</source></trans-unit>
+      <trans-unit id="table.createdAt"><source>Created on {0}</source></trans-unit>
+
+      <!-- Actions -->
+      <trans-unit id="action.edit"><source>Edit</source></trans-unit>
+      <trans-unit id="action.archive"><source>Archive</source></trans-unit>
+      <trans-unit id="action.delete"><source>Delete</source></trans-unit>
+
+      <!-- Form page -->
+      <trans-unit id="form.newTitle"><source>New notification</source></trans-unit>
+      <trans-unit id="form.backButton"><source>Back to overview</source></trans-unit>
+      <trans-unit id="form.validationHeading"><source>Check the form</source></trans-unit>
+
+      <!-- Form fields -->
+      <trans-unit id="field.title"><source>Title</source></trans-unit>
+      <trans-unit id="field.titleHelp"><source>Use a short, scannable title so editors immediately see what the update is about.</source></trans-unit>
+      <trans-unit id="field.titlePlaceholder"><source>Example: New review workflow is live</source></trans-unit>
+      <trans-unit id="field.content"><source>Message</source></trans-unit>
+      <trans-unit id="field.contentHelp"><source>Write in Markdown. Use **bold**, *italic*, - for lists, [text](url) for links.</source></trans-unit>
+      <trans-unit id="field.contentPlaceholder"><source>Start with a short summary. Then optionally add bullets, links, or screenshots.
+
+Markdown: **bold**, *italic*, - list, [text](url)</source></trans-unit>
+      <trans-unit id="field.markdownHelp"><source>Markdown: **bold**, *italic*, - list, 1. numbering, [text](url), ![alt](url)</source></trans-unit>
+      <trans-unit id="field.showFrom"><source>Show from</source></trans-unit>
+      <trans-unit id="field.showFromHelp"><source>Leave empty to make the notification visible immediately when you publish.</source></trans-unit>
+      <trans-unit id="field.showUntil"><source>Show until</source></trans-unit>
+      <trans-unit id="field.showUntilHelp"><source>Optional. Useful for temporary announcements or release updates.</source></trans-unit>
+
+      <!-- Toolbar -->
+      <trans-unit id="toolbar.bold"><source>Bold (Ctrl+B)</source></trans-unit>
+      <trans-unit id="toolbar.boldShort"><source>Bold</source></trans-unit>
+      <trans-unit id="toolbar.italic"><source>Italic (Ctrl+I)</source></trans-unit>
+      <trans-unit id="toolbar.italicShort"><source>Italic</source></trans-unit>
+      <trans-unit id="toolbar.unorderedList"><source>Bullet list</source></trans-unit>
+      <trans-unit id="toolbar.orderedList"><source>Numbered list</source></trans-unit>
+      <trans-unit id="toolbar.insertLink"><source>Insert link</source></trans-unit>
+      <trans-unit id="toolbar.uploadImage"><source>Upload image</source></trans-unit>
+
+      <!-- Buttons -->
+      <trans-unit id="button.saveDraft"><source>Save as draft</source></trans-unit>
+      <trans-unit id="button.saveAndPublish"><source>Save &amp; publish</source></trans-unit>
+      <trans-unit id="button.delete"><source>Delete</source></trans-unit>
+      <trans-unit id="button.updateDraft"><source>Update draft</source></trans-unit>
+      <trans-unit id="button.publish"><source>Publish</source></trans-unit>
+      <trans-unit id="button.unpublish"><source>Revoke publication</source></trans-unit>
+      <trans-unit id="button.archive"><source>Archive</source></trans-unit>
+      <trans-unit id="button.update"><source>Update</source></trans-unit>
+
+      <!-- Confirm dialogs -->
+      <trans-unit id="confirm.delete"><source>This draft will be permanently deleted. Are you sure?</source></trans-unit>
+      <trans-unit id="confirm.unpublish"><source>The notification will become a draft again and will no longer be visible to editors. Continue?</source></trans-unit>
+      <trans-unit id="confirm.archive"><source>The notification will be archived and will no longer be visible. Continue?</source></trans-unit>
+      <trans-unit id="confirm.default"><source>Are you sure?</source></trans-unit>
+
+      <!-- Preview -->
+      <trans-unit id="preview.title"><source>Preview</source></trans-unit>
+      <trans-unit id="preview.description"><source>This is how the notification will look for editors.</source></trans-unit>
+      <trans-unit id="preview.defaultMeta"><source>Not yet scheduled</source></trans-unit>
+      <trans-unit id="preview.defaultTitle"><source>No title entered yet</source></trans-unit>
+      <trans-unit id="preview.heading"><source>Your message appears here</source></trans-unit>
+      <trans-unit id="preview.text"><source>Write markdown in the text field on the left.</source></trans-unit>
+      <trans-unit id="preview.visibleFromTo"><source>Visible from {0} until {1}</source></trans-unit>
+      <trans-unit id="preview.visibleFrom"><source>Visible from {0}</source></trans-unit>
+      <trans-unit id="preview.visibleUntil"><source>Visible until {0}</source></trans-unit>
+
+      <!-- Module.js -->
+      <trans-unit id="js.enterUrl"><source>Enter a URL</source></trans-unit>
+      <trans-unit id="js.linkText"><source>link text</source></trans-unit>
+      <trans-unit id="js.uploadFailed"><source>Upload failed: {0}</source></trans-unit>
+      <trans-unit id="js.unknownError"><source>unknown error</source></trans-unit>
+      <trans-unit id="js.uploadNetworkError"><source>Upload failed: network error</source></trans-unit>
+
+      <!-- Plugin.js -->
+      <trans-unit id="plugin.notifications"><source>Notifications</source></trans-unit>
+      <trans-unit id="plugin.close"><source>Close</source></trans-unit>
+      <trans-unit id="plugin.unreadCount"><source>{0} unread</source></trans-unit>
+      <trans-unit id="plugin.empty"><source>There are currently no notifications.</source></trans-unit>
+      <trans-unit id="plugin.dismiss"><source>Hide</source></trans-unit>
+      <trans-unit id="plugin.markUnread"><source>Mark as unread</source></trans-unit>
+      <trans-unit id="plugin.showHidden"><source>Show hidden notifications</source></trans-unit>
+      <trans-unit id="plugin.hideHidden"><source>Hide hidden notifications</source></trans-unit>
+      <trans-unit id="plugin.newNotification"><source>{0} new notification</source></trans-unit>
+      <trans-unit id="plugin.newNotifications"><source>{0} new notifications</source></trans-unit>
+      <trans-unit id="plugin.clickToView"><source>Click to view</source></trans-unit>
+      <trans-unit id="plugin.unhide"><source>Unhide</source></trans-unit>
+      <trans-unit id="plugin.delete"><source>Delete</source></trans-unit>
+      <trans-unit id="plugin.confirmDelete"><source>Permanently delete this notification?</source></trans-unit>
+      <trans-unit id="plugin.markRead"><source>Mark as read</source></trans-unit>
+      <trans-unit id="plugin.markAllRead"><source>Mark all read</source></trans-unit>
+
+      <!-- Show window -->
+      <trans-unit id="showWindow.immediate"><source>immediate</source></trans-unit>
+      <trans-unit id="showWindow.unlimited"><source>unlimited</source></trans-unit>
     </body>
   </file>
 </xliff>

@@ -43,6 +43,12 @@ class NotificationReadState
      */
     protected ?\DateTime $dismissedAt = null;
 
+    /**
+     * @var \DateTime|null
+     * @ORM\Column(nullable=true)
+     */
+    protected ?\DateTime $removedAt = null;
+
     public function __construct(Notification $notification, User $user)
     {
         $this->notification = $notification;
@@ -77,5 +83,15 @@ class NotificationReadState
     public function setDismissedAt(?\DateTime $dismissedAt): void
     {
         $this->dismissedAt = $dismissedAt;
+    }
+
+    public function getRemovedAt(): ?\DateTime
+    {
+        return $this->removedAt;
+    }
+
+    public function setRemovedAt(?\DateTime $removedAt): void
+    {
+        $this->removedAt = $removedAt;
     }
 }

@@ -35,6 +35,12 @@
     color: #727272;
 }
 
+.est-notifications-filterCount {
+    opacity: 0.5;
+    font-size: 0.85em;
+    margin-left: 0.15em;
+}
+
 /* ── Table ─────────────────────────────────────────────────────── */
 
 .est-notifications-tableWrap {
@@ -98,7 +104,24 @@
     text-shadow: none;
 }
 
-.est-notifications-actionButton:first-child {
+.est-notifications-actionsInner form {
+    display: inline;
+    margin: 0;
+    padding: 0;
+}
+
+.est-notifications-actionsInner form button.est-notifications-actionButton {
+    min-width: 40px;
+    width: 40px;
+    padding: 0;
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    color: inherit;
+}
+
+.est-notifications-actionButton:first-child,
+.est-notifications-actionsInner > :first-child .est-notifications-actionButton {
     margin-left: auto;
 }
 
@@ -114,6 +137,7 @@
 
 .est-notifications-pagination {
     display: flex;
+    justify-content: center;
     gap: 0.5rem;
     margin-top: 1rem;
 }

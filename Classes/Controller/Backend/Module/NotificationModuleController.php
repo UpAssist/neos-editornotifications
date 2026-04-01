@@ -6,8 +6,11 @@ namespace UpAssist\Neos\EditorNotifications\Controller\Backend\Module;
 
 use Neos\Error\Messages\Message;
 use Neos\Flow\Annotations as Flow;
+use Neos\Flow\I18n\Locale;
+use Neos\Flow\I18n\Translator;
 use Neos\Fusion\View\FusionView;
 use Neos\Neos\Controller\Module\AbstractModuleController;
+use Neos\Neos\Domain\Service\UserService;
 use Neos\Flow\Persistence\PersistenceManagerInterface;
 use UpAssist\Neos\EditorNotifications\Domain\Model\Notification;
 use UpAssist\Neos\EditorNotifications\Domain\Repository\NotificationRepository;
@@ -15,6 +18,9 @@ use UpAssist\Neos\EditorNotifications\Service\NotificationService;
 
 class NotificationModuleController extends AbstractModuleController
 {
+    private const TRANSLATION_SOURCE = 'Main';
+    private const TRANSLATION_PACKAGE = 'UpAssist.Neos.EditorNotifications';
+
     protected $defaultViewObjectName = FusionView::class;
 
     /**
@@ -35,24 +41,46 @@ class NotificationModuleController extends AbstractModuleController
      */
     protected $persistenceManager;
 
+    /**
+     * @Flow\Inject
+     * @var Translator
+     */
+    protected $translator;
+
+    /**
+     * @Flow\Inject
+     * @var UserService
+     */
+    protected $userService;
+
+    protected function initializeView($view): void
+    {
+        parent::initializeView($view);
+        $view->assign('interfaceLanguage', $this->getInterfaceLanguage());
+    }
+
     public function indexAction(string $filter = 'active', int $page = 1): void
     {
         $page = max(1, $page);
-        $pageSize = 15;
+        $pageSize = 10;
         $totalCount = $this->notificationRepository->countByFilter($filter);
         $pageCount = max(1, (int)ceil($totalCount / $pageSize));
         $page = min($page, $pageCount);
         $notifications = $this->notificationRepository->findByFilter($filter, $pageSize, ($page - 1) * $pageSize);
 
+        $filterNames = ['active', 'scheduled', 'draft', 'expired', 'archived'];
+        $filters = [];
+        foreach ($filterNames as $name) {
+            $filters[] = [
+                'value' => $name,
+                'label' => $this->translate('filter.' . $name),
+                'count' => $this->notificationRepository->countByFilter($name),
+            ];
+        }
+
         $this->view->assignMultiple([
             'filter' => $filter,
-            'filters' => [
-                ['value' => 'active', 'label' => 'Actief'],
-                ['value' => 'scheduled', 'label' => 'Ingepland'],
-                ['value' => 'draft', 'label' => 'Concepten'],
-                ['value' => 'expired', 'label' => 'Verlopen'],
-                ['value' => 'archived', 'label' => 'Archief'],
-            ],
+            'filters' => $filters,
             'notifications' => array_map(fn(Notification $notification) => $this->mapNotificationForList($notification), $notifications),
             'page' => $page,
             'pageCount' => $pageCount,
@@ -87,7 +115,7 @@ class NotificationModuleController extends AbstractModuleController
             return;
         }
 
-        $this->addFlashMessage('Notificatie opgeslagen.');
+        $this->addFlashMessage($this->translate('flash.created'));
         $this->redirect('edit', null, null, [
             'notificationIdentifier' => $this->persistenceManager->getIdentifierByObject($result['notification']),
         ]);
@@ -122,7 +150,7 @@ class NotificationModuleController extends AbstractModuleController
             return;
         }
 
-        $this->addFlashMessage('Notificatie bijgewerkt.');
+        $this->addFlashMessage($this->translate('flash.updated'));
         $this->redirect('edit', null, null, ['notificationIdentifier' => $notificationIdentifier]);
     }
 
@@ -141,43 +169,43 @@ class NotificationModuleController extends AbstractModuleController
         }
 
         $this->notificationService->publish($result['notification']);
-        $this->addFlashMessage('Notificatie opgeslagen en gepubliceerd.');
+        $this->addFlashMessage($this->translate('flash.createdAndPublished'));
         $this->redirect('index');
     }
 
     public function publishAction(string $notificationIdentifier): void
     {
         $this->notificationService->publish($this->requireNotification($notificationIdentifier));
-        $this->addFlashMessage('Notificatie gepubliceerd.');
+        $this->addFlashMessage($this->translate('flash.published'));
         $this->redirect('edit', null, null, ['notificationIdentifier' => $notificationIdentifier]);
     }
 
     public function unpublishAction(string $notificationIdentifier): void
     {
         $this->notificationService->unpublish($this->requireNotification($notificationIdentifier));
-        $this->addFlashMessage('Publicatie ingetrokken.');
+        $this->addFlashMessage($this->translate('flash.unpublished'));
         $this->redirect('edit', null, null, ['notificationIdentifier' => $notificationIdentifier]);
     }
 
     public function archiveAction(string $notificationIdentifier): void
     {
         $this->notificationService->archive($this->requireNotification($notificationIdentifier));
-        $this->addFlashMessage('Notificatie gearchiveerd.');
+        $this->addFlashMessage($this->translate('flash.archived'));
         $this->redirect('index', null, null, ['filter' => 'archived']);
     }
 
     public function deleteAction(string $notificationIdentifier): void
     {
         $notification = $this->requireNotification($notificationIdentifier);
-        if (!$notification->isDraft()) {
-            $this->addFlashMessage('Alleen concepten kunnen worden verwijderd.', '', Message::SEVERITY_WARNING);
-            $this->redirect('edit', null, null, ['notificationIdentifier' => $notificationIdentifier]);
+        if ($notification->isActive(new \DateTime())) {
+            $this->addFlashMessage($this->translate('flash.cannotDeleteActive'), '', Message::SEVERITY_WARNING);
+            $this->redirect('index');
             return;
         }
 
         $this->notificationService->delete($notification);
-        $this->addFlashMessage('Concept verwijderd.');
-        $this->redirect('index', null, null, ['filter' => 'draft']);
+        $this->addFlashMessage($this->translate('flash.deleted'));
+        $this->redirect('index');
     }
 
     private function requireNotification(string $notificationIdentifier): Notification
@@ -198,24 +226,24 @@ class NotificationModuleController extends AbstractModuleController
         $identifier = $this->persistenceManager->getIdentifierByObject($notification);
         $now = new \DateTime();
         $statusKey = 'draft';
-        $status = 'Concept';
-        $statusHint = 'Niet zichtbaar voor redacteurs';
+        $status = $this->translate('status.draft');
+        $statusHint = $this->translate('statusHint.draft');
         if ($notification->isArchived()) {
             $statusKey = 'archived';
-            $status = 'Gearchiveerd';
-            $statusHint = 'Niet meer zichtbaar';
+            $status = $this->translate('status.archived');
+            $statusHint = $this->translate('statusHint.archived');
         } elseif ($notification->isScheduled($now)) {
             $statusKey = 'scheduled';
-            $status = 'Ingepland';
-            $statusHint = 'Zichtbaar vanaf ' . $notification->getShowFrom()->format('d-m-Y H:i');
+            $status = $this->translate('status.scheduled');
+            $statusHint = $this->translate('statusHint.scheduled', [$notification->getShowFrom()->format('d-m-Y H:i')]);
         } elseif ($notification->isExpired($now)) {
             $statusKey = 'expired';
-            $status = 'Verlopen';
-            $statusHint = 'Zichtbaarheid afgelopen op ' . $notification->getShowUntil()->format('d-m-Y H:i');
+            $status = $this->translate('status.expired');
+            $statusHint = $this->translate('statusHint.expired', [$notification->getShowUntil()->format('d-m-Y H:i')]);
         } elseif ($notification->isActive($now)) {
             $statusKey = 'active';
-            $status = 'Gepubliceerd';
-            $statusHint = 'Zichtbaar voor redacteurs';
+            $status = $this->translate('status.published');
+            $statusHint = $this->translate('statusHint.published');
         }
 
         return [
@@ -225,11 +253,12 @@ class NotificationModuleController extends AbstractModuleController
             'statusKey' => $statusKey,
             'statusHint' => $statusHint,
             'createdAt' => $notification->getCreatedAt()->format('d-m-Y H:i'),
-            'publishedAt' => $notification->getPublishedAt()?->format('d-m-Y H:i') ?? 'Nog niet gepubliceerd',
+            'publishedAt' => $notification->getPublishedAt()?->format('d-m-Y H:i') ?? $this->translate('statusHint.notPublished'),
             'showWindow' => $this->formatShowWindow($notification),
             'isDraft' => $notification->isDraft(),
             'isArchived' => $notification->isArchived(),
             'isPublished' => !$notification->isDraft(),
+            'canDelete' => $statusKey !== 'active',
         ];
     }
 
@@ -288,8 +317,32 @@ class NotificationModuleController extends AbstractModuleController
 
     private function formatShowWindow(Notification $notification): string
     {
-        $showFrom = $notification->getShowFrom()?->format('d-m-Y H:i') ?? 'direct';
-        $showUntil = $notification->getShowUntil()?->format('d-m-Y H:i') ?? 'onbeperkt';
-        return $showFrom . ' - ' . $showUntil;
+        $showFrom = $notification->getShowFrom()?->format('d-m-Y H:i') ?? $this->translate('showWindow.immediate');
+        $showUntil = $notification->getShowUntil()?->format('d-m-Y H:i') ?? $this->translate('showWindow.unlimited');
+        return $showFrom . ' – ' . $showUntil;
+    }
+
+    private function getInterfaceLanguage(): string
+    {
+        $user = $this->userService->getCurrentUser();
+        if ($user !== null && $user->getPreferences() !== null) {
+            return $user->getPreferences()->getInterfaceLanguage() ?: 'en';
+        }
+        return 'en';
+    }
+
+    /**
+     * @param array<int, scalar> $arguments
+     */
+    private function translate(string $id, array $arguments = []): string
+    {
+        return $this->translator->translateById(
+            $id,
+            $arguments,
+            null,
+            new Locale($this->getInterfaceLanguage()),
+            self::TRANSLATION_SOURCE,
+            self::TRANSLATION_PACKAGE
+        ) ?? $id;
     }
 }

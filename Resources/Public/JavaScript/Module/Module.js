@@ -1,5 +1,16 @@
 (function () {
+    function getTranslations(el) {
+        var host = el.closest("[data-translations]");
+        try { return JSON.parse(host ? host.getAttribute("data-translations") : "{}"); } catch (e) { return {}; }
+    }
+    function t(tr, key, fallback, reps) {
+        var text = tr[key] || fallback;
+        if (reps) { for (var i = 0; i < reps.length; i++) { text = text.replace("{" + i + "}", reps[i]); } }
+        return text;
+    }
+
     function initMarkdownEditor(root) {
+        var translations = getTranslations(root);
         var editor = root.querySelector("[data-md-editor]");
         var preview = document.getElementById(root.getAttribute("data-preview-target"));
         var previewTitle = document.getElementById(root.getAttribute("data-preview-title-target"));
@@ -73,14 +84,14 @@
                     });
                     break;
                 case "link":
-                    var url = window.prompt("Voer een URL in");
+                    var url = window.prompt(t(translations, "js.enterUrl", "Enter a URL"));
                     if (url) {
                         var start = editor.selectionStart;
                         var end = editor.selectionEnd;
-                        var selected = editor.value.substring(start, end) || "linktekst";
+                        var selected = editor.value.substring(start, end) || t(translations, "js.linkText", "link text");
                         wrapSelection("[", "](" + url + ")");
                         if (start === end) {
-                            // No selection — put "linktekst" placeholder
+                            // No selection — insert placeholder text
                             var text = editor.value;
                             editor.value = text.substring(0, start) + "[" + selected + "](" + url + ")" + text.substring(start);
                             editor.selectionStart = start + 1;
@@ -138,17 +149,17 @@
                     if (data.success && data.url) {
                         var pos = editor.selectionStart;
                         var text = editor.value;
-                        var insert = "![afbeelding](" + data.url + ")";
+                        var insert = "![image](" + data.url + ")";
                         editor.value = text.substring(0, pos) + insert + text.substring(pos);
                         editor.selectionStart = editor.selectionEnd = pos + insert.length;
                         editor.focus();
                         syncPreview();
                     } else {
-                        window.alert("Upload mislukt: " + (data.error || "onbekende fout"));
+                        window.alert(t(translations, "js.uploadFailed", "Upload failed: {0}", [data.error || t(translations, "js.unknownError", "unknown error")]));
                     }
                 })
                 .catch(function () {
-                    window.alert("Upload mislukt: netwerkfout");
+                    window.alert(t(translations, "js.uploadNetworkError", "Upload failed: network error"));
                 })
                 .finally(function () {
                     if (imageButton) {
@@ -255,7 +266,7 @@
         function syncPreview() {
             var title = titleInput && titleInput.value.trim()
                 ? titleInput.value.trim()
-                : "Nog geen titel ingevuld";
+                : t(translations, "preview.defaultTitle", "No title entered yet");
             var markdown = editor.value.trim();
             var showFrom = formatDate(showFromInput && showFromInput.value);
             var showUntil = formatDate(showUntilInput && showUntilInput.value);
@@ -266,20 +277,23 @@
 
             if (previewMeta) {
                 if (showFrom && showUntil) {
-                    previewMeta.textContent = "Zichtbaar van " + showFrom + " tot " + showUntil;
+                    previewMeta.textContent = t(translations, "preview.visibleFromTo", "Visible from {0} until {1}", [showFrom, showUntil]);
                 } else if (showFrom) {
-                    previewMeta.textContent = "Zichtbaar vanaf " + showFrom;
+                    previewMeta.textContent = t(translations, "preview.visibleFrom", "Visible from {0}", [showFrom]);
                 } else if (showUntil) {
-                    previewMeta.textContent = "Zichtbaar tot " + showUntil;
+                    previewMeta.textContent = t(translations, "preview.visibleUntil", "Visible until {0}", [showUntil]);
                 } else {
-                    previewMeta.textContent = "Nog niet ingepland";
+                    previewMeta.textContent = t(translations, "preview.defaultMeta", "Not yet scheduled");
                 }
             }
 
+            var emptyHtml = '<div class="est-previewEmpty"><strong>' +
+                t(translations, "preview.heading", "Your message appears here") +
+                '</strong><p>' +
+                t(translations, "preview.text", "Write markdown in the text field on the left.") +
+                '</p></div>';
             // nosec: markdownToHtml escapes all HTML entities before processing
-            preview.innerHTML = markdown
-                ? markdownToHtml(markdown)
-                : '<div class="est-previewEmpty"><strong>Hier verschijnt je bericht</strong><p>Schrijf markdown in het tekstveld links.</p></div>';
+            preview.innerHTML = markdown ? markdownToHtml(markdown) : emptyHtml;
             preview.classList.toggle("is-empty", markdown === "");
         }
 
@@ -294,7 +308,8 @@
     function initConfirmActions() {
         document.querySelectorAll(".est-confirmAction").forEach(function (button) {
             button.addEventListener("click", function (event) {
-                var message = button.getAttribute("data-confirm-message") || "Weet je het zeker?";
+                var tr = getTranslations(button);
+                var message = button.getAttribute("data-confirm-message") || t(tr, "confirm.default", "Are you sure?");
                 if (!window.confirm(message)) {
                     event.preventDefault();
                 }

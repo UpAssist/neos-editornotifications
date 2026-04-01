@@ -6,6 +6,8 @@ namespace UpAssist\Neos\EditorNotifications\Service;
 
 use League\CommonMark\CommonMarkConverter;
 use Neos\Flow\Annotations as Flow;
+use Neos\Flow\I18n\Locale;
+use Neos\Flow\I18n\Translator;
 use Neos\Flow\Persistence\PersistenceManagerInterface;
 use Neos\Neos\Domain\Model\User;
 use Neos\Neos\Domain\Service\UserService;
@@ -42,6 +44,18 @@ class NotificationService
      * @var PersistenceManagerInterface
      */
     protected $persistenceManager;
+
+    /**
+     * @Flow\Inject
+     * @var Translator
+     */
+    protected $translator;
+
+    /**
+     * @Flow\Inject
+     * @var \Neos\Neos\Domain\Service\UserService
+     */
+    protected $neosUserService;
 
     /**
      * @return array{notification: Notification, errors: array<int, string>}
@@ -106,6 +120,7 @@ class NotificationService
 
     public function delete(Notification $notification): void
     {
+        $this->notificationReadStateRepository->removeByNotification($notification);
         $this->notificationRepository->remove($notification);
     }
 
@@ -125,6 +140,11 @@ class NotificationService
 
         foreach ($notifications as $notification) {
             $state = $this->notificationReadStateRepository->findOneByNotificationAndUser($notification, $user);
+            $isRemoved = $state !== null && $state->getRemovedAt() !== null;
+            if ($isRemoved) {
+                continue;
+            }
+
             $isSeen = $state !== null && $state->getSeenAt() !== null;
             $isDismissed = $state !== null && $state->getDismissedAt() !== null;
 
@@ -172,6 +192,23 @@ class NotificationService
         $this->persistReadState($state);
     }
 
+    public function markAllSeen(): void
+    {
+        $user = $this->getCurrentUser();
+        if ($user === null) {
+            return;
+        }
+
+        $now = new \DateTime();
+        foreach ($this->notificationRepository->findActive() as $notification) {
+            $state = $this->findOrCreateReadState($notification, $user);
+            if ($state->getSeenAt() === null) {
+                $state->setSeenAt($now);
+                $this->persistReadState($state);
+            }
+        }
+    }
+
     public function markUnseen(Notification $notification): void
     {
         $user = $this->getCurrentUser();
@@ -186,6 +223,18 @@ class NotificationService
 
         $state->setSeenAt(null);
         $state->setDismissedAt(null);
+        $this->persistReadState($state);
+    }
+
+    public function removeForCurrentUser(Notification $notification): void
+    {
+        $user = $this->getCurrentUser();
+        if ($user === null) {
+            return;
+        }
+
+        $state = $this->findOrCreateReadState($notification, $user);
+        $state->setRemovedAt(new \DateTime());
         $this->persistReadState($state);
     }
 
@@ -214,11 +263,11 @@ class NotificationService
         $errors = [];
 
         if (trim($title) === '') {
-            $errors[] = 'Titel is verplicht.';
+            $errors[] = $this->translator->translateById('validation.titleRequired', [], null, new Locale($this->getInterfaceLanguageForCurrentUser()), 'Main', 'UpAssist.Neos.EditorNotifications') ?? 'Title is required.';
         }
 
         if ($showFrom !== null && $showUntil !== null && $showUntil < $showFrom) {
-            $errors[] = 'Toon tot moet later zijn dan toon vanaf.';
+            $errors[] = $this->translator->translateById('validation.showUntilBeforeShowFrom', [], null, new Locale($this->getInterfaceLanguageForCurrentUser()), 'Main', 'UpAssist.Neos.EditorNotifications') ?? 'Show until must be later than show from.';
         }
 
         return $errors;
@@ -257,6 +306,15 @@ class NotificationService
         }
 
         $this->notificationReadStateRepository->update($state);
+    }
+
+    private function getInterfaceLanguageForCurrentUser(): string
+    {
+        $user = $this->getCurrentUser();
+        if ($user !== null && $user->getPreferences() !== null) {
+            return $user->getPreferences()->getInterfaceLanguage() ?: 'en';
+        }
+        return 'en';
     }
 
     private function getCurrentUser(): ?User

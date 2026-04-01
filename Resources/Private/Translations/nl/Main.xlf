@@ -2,14 +2,153 @@
 <xliff version="1.2" xmlns="urn:oasis:names:tc:xliff:document:1.2">
   <file original="" product-name="UpAssist.Neos.EditorNotifications" source-language="en" target-language="nl" datatype="plaintext">
     <body>
-      <trans-unit id="module.label">
-        <source>Editor notifications</source>
-        <target>Redacteurnotificaties</target>
-      </trans-unit>
-      <trans-unit id="module.description">
-        <source>Manage backend notifications for editors</source>
-        <target>Beheer backendnotificaties voor redacteurs</target>
-      </trans-unit>
+      <!-- Module -->
+      <trans-unit id="module.label"><source>Editor notifications</source><target>Redacteurnotificaties</target></trans-unit>
+      <trans-unit id="module.description"><source>Manage backend notifications for editors</source><target>Beheer backendnotificaties voor redacteurs</target></trans-unit>
+
+      <!-- Filters -->
+      <trans-unit id="filter.active"><source>Active</source><target>Actief</target></trans-unit>
+      <trans-unit id="filter.scheduled"><source>Scheduled</source><target>Ingepland</target></trans-unit>
+      <trans-unit id="filter.draft"><source>Drafts</source><target>Concepten</target></trans-unit>
+      <trans-unit id="filter.expired"><source>Expired</source><target>Verlopen</target></trans-unit>
+      <trans-unit id="filter.archived"><source>Archive</source><target>Archief</target></trans-unit>
+
+      <!-- Status labels -->
+      <trans-unit id="status.draft"><source>Draft</source><target>Concept</target></trans-unit>
+      <trans-unit id="status.archived"><source>Archived</source><target>Gearchiveerd</target></trans-unit>
+      <trans-unit id="status.scheduled"><source>Scheduled</source><target>Ingepland</target></trans-unit>
+      <trans-unit id="status.expired"><source>Expired</source><target>Verlopen</target></trans-unit>
+      <trans-unit id="status.published"><source>Published</source><target>Gepubliceerd</target></trans-unit>
+
+      <!-- Status hints -->
+      <trans-unit id="statusHint.draft"><source>Not visible to editors</source><target>Niet zichtbaar voor redacteurs</target></trans-unit>
+      <trans-unit id="statusHint.archived"><source>No longer visible</source><target>Niet meer zichtbaar</target></trans-unit>
+      <trans-unit id="statusHint.scheduled"><source>Visible from {0}</source><target>Zichtbaar vanaf {0}</target></trans-unit>
+      <trans-unit id="statusHint.expired"><source>Visibility ended on {0}</source><target>Zichtbaarheid afgelopen op {0}</target></trans-unit>
+      <trans-unit id="statusHint.published"><source>Visible to editors</source><target>Zichtbaar voor redacteurs</target></trans-unit>
+      <trans-unit id="statusHint.notPublished"><source>Not yet published</source><target>Nog niet gepubliceerd</target></trans-unit>
+
+      <!-- Flash messages -->
+      <trans-unit id="flash.created"><source>Notification saved.</source><target>Notificatie opgeslagen.</target></trans-unit>
+      <trans-unit id="flash.updated"><source>Notification updated.</source><target>Notificatie bijgewerkt.</target></trans-unit>
+      <trans-unit id="flash.createdAndPublished"><source>Notification saved and published.</source><target>Notificatie opgeslagen en gepubliceerd.</target></trans-unit>
+      <trans-unit id="flash.published"><source>Notification published.</source><target>Notificatie gepubliceerd.</target></trans-unit>
+      <trans-unit id="flash.unpublished"><source>Publication revoked.</source><target>Publicatie ingetrokken.</target></trans-unit>
+      <trans-unit id="flash.archived"><source>Notification archived.</source><target>Notificatie gearchiveerd.</target></trans-unit>
+      <trans-unit id="flash.deleted"><source>Notification deleted.</source><target>Notificatie verwijderd.</target></trans-unit>
+      <trans-unit id="flash.cannotDeleteActive"><source>Active notifications cannot be deleted. Archive the notification first.</source><target>Actieve notificaties kunnen niet worden verwijderd. Archiveer de notificatie eerst.</target></trans-unit>
+
+      <!-- Validation -->
+      <trans-unit id="validation.titleRequired"><source>Title is required.</source><target>Titel is verplicht.</target></trans-unit>
+      <trans-unit id="validation.showUntilBeforeShowFrom"><source>Show until must be later than show from.</source><target>Toon tot moet later zijn dan toon vanaf.</target></trans-unit>
+
+      <!-- Index page -->
+      <trans-unit id="index.title"><source>Editor notifications</source><target>Redacteurnotificaties</target></trans-unit>
+      <trans-unit id="index.newButton"><source>New notification</source><target>Nieuwe notificatie</target></trans-unit>
+      <trans-unit id="index.helpAriaLabel"><source>Explanation of expired and archive</source><target>Uitleg over verlopen en archief</target></trans-unit>
+      <trans-unit id="index.helpText"><source>"Expired" notifications are automatically no longer active because their visibility has ended. "Archive" is for notifications you manually close as an admin.</source><target>"Verlopen" notificaties zijn automatisch niet meer actief doordat hun zichtbaarheid is afgelopen. "Archief" is voor notificaties die je handmatig afsluit als admin.</target></trans-unit>
+      <trans-unit id="index.itemCount"><source>{0} items</source><target>{0} items</target></trans-unit>
+      <trans-unit id="index.empty"><source>No notifications found for this filter.</source><target>Geen notificaties gevonden voor dit filter.</target></trans-unit>
+
+      <!-- Table headers -->
+      <trans-unit id="table.title"><source>Title</source><target>Titel</target></trans-unit>
+      <trans-unit id="table.status"><source>Status</source><target>Status</target></trans-unit>
+      <trans-unit id="table.publication"><source>Publication</source><target>Publicatie</target></trans-unit>
+      <trans-unit id="table.visibility"><source>Visibility</source><target>Zichtbaarheid</target></trans-unit>
+      <trans-unit id="table.createdAt"><source>Created on {0}</source><target>Aangemaakt op {0}</target></trans-unit>
+
+      <!-- Actions -->
+      <trans-unit id="action.edit"><source>Edit</source><target>Bewerken</target></trans-unit>
+      <trans-unit id="action.archive"><source>Archive</source><target>Archiveren</target></trans-unit>
+      <trans-unit id="action.delete"><source>Delete</source><target>Verwijderen</target></trans-unit>
+
+      <!-- Form page -->
+      <trans-unit id="form.newTitle"><source>New notification</source><target>Nieuwe notificatie</target></trans-unit>
+      <trans-unit id="form.backButton"><source>Back to overview</source><target>Terug naar overzicht</target></trans-unit>
+      <trans-unit id="form.validationHeading"><source>Check the form</source><target>Controleer het formulier</target></trans-unit>
+
+      <!-- Form fields -->
+      <trans-unit id="field.title"><source>Title</source><target>Titel</target></trans-unit>
+      <trans-unit id="field.titleHelp"><source>Use a short, scannable title so editors immediately see what the update is about.</source><target>Gebruik een korte, scanbare titel zodat redacteurs meteen zien waar de update over gaat.</target></trans-unit>
+      <trans-unit id="field.titlePlaceholder"><source>Example: New review workflow is live</source><target>Bijvoorbeeld: Nieuwe reviewworkflow staat live</target></trans-unit>
+      <trans-unit id="field.content"><source>Message</source><target>Bericht</target></trans-unit>
+      <trans-unit id="field.contentHelp"><source>Write in Markdown. Use **bold**, *italic*, - for lists, [text](url) for links.</source><target>Schrijf in Markdown. Gebruik **vet**, *cursief*, - voor lijsten, [tekst](url) voor links.</target></trans-unit>
+      <trans-unit id="field.contentPlaceholder"><source>Start with a short summary. Then optionally add bullets, links, or screenshots.
+
+Markdown: **bold**, *italic*, - list, [text](url)</source><target>Start met een korte samenvatting. Voeg daarna eventueel bullets, links of screenshots toe.
+
+Markdown: **vet**, *cursief*, - lijst, [tekst](url)</target></trans-unit>
+      <trans-unit id="field.markdownHelp"><source>Markdown: **bold**, *italic*, - list, 1. numbering, [text](url), ![alt](url)</source><target>Markdown: **vet**, *cursief*, - lijst, 1. nummering, [tekst](url), ![alt](url)</target></trans-unit>
+      <trans-unit id="field.showFrom"><source>Show from</source><target>Toon vanaf</target></trans-unit>
+      <trans-unit id="field.showFromHelp"><source>Leave empty to make the notification visible immediately when you publish.</source><target>Laat leeg om de notificatie direct zichtbaar te maken zodra je publiceert.</target></trans-unit>
+      <trans-unit id="field.showUntil"><source>Show until</source><target>Toon tot</target></trans-unit>
+      <trans-unit id="field.showUntilHelp"><source>Optional. Useful for temporary announcements or release updates.</source><target>Optioneel. Handig voor tijdelijke mededelingen of release-updates.</target></trans-unit>
+
+      <!-- Toolbar -->
+      <trans-unit id="toolbar.bold"><source>Bold (Ctrl+B)</source><target>Vet (Ctrl+B)</target></trans-unit>
+      <trans-unit id="toolbar.boldShort"><source>Bold</source><target>Vet</target></trans-unit>
+      <trans-unit id="toolbar.italic"><source>Italic (Ctrl+I)</source><target>Cursief (Ctrl+I)</target></trans-unit>
+      <trans-unit id="toolbar.italicShort"><source>Italic</source><target>Cursief</target></trans-unit>
+      <trans-unit id="toolbar.unorderedList"><source>Bullet list</source><target>Opsommingslijst</target></trans-unit>
+      <trans-unit id="toolbar.orderedList"><source>Numbered list</source><target>Genummerde lijst</target></trans-unit>
+      <trans-unit id="toolbar.insertLink"><source>Insert link</source><target>Link invoegen</target></trans-unit>
+      <trans-unit id="toolbar.uploadImage"><source>Upload image</source><target>Afbeelding uploaden</target></trans-unit>
+
+      <!-- Buttons -->
+      <trans-unit id="button.saveDraft"><source>Save as draft</source><target>Opslaan als concept</target></trans-unit>
+      <trans-unit id="button.saveAndPublish"><source>Save &amp; publish</source><target>Opslaan &amp; publiceren</target></trans-unit>
+      <trans-unit id="button.delete"><source>Delete</source><target>Verwijderen</target></trans-unit>
+      <trans-unit id="button.updateDraft"><source>Update draft</source><target>Concept bijwerken</target></trans-unit>
+      <trans-unit id="button.publish"><source>Publish</source><target>Publiceren</target></trans-unit>
+      <trans-unit id="button.unpublish"><source>Revoke publication</source><target>Publicatie intrekken</target></trans-unit>
+      <trans-unit id="button.archive"><source>Archive</source><target>Archiveren</target></trans-unit>
+      <trans-unit id="button.update"><source>Update</source><target>Bijwerken</target></trans-unit>
+
+      <!-- Confirm dialogs -->
+      <trans-unit id="confirm.delete"><source>This draft will be permanently deleted. Are you sure?</source><target>Dit concept wordt permanent verwijderd. Weet je het zeker?</target></trans-unit>
+      <trans-unit id="confirm.unpublish"><source>The notification will become a draft again and will no longer be visible to editors. Continue?</source><target>De notificatie wordt weer een concept en is niet meer zichtbaar voor redacteurs. Doorgaan?</target></trans-unit>
+      <trans-unit id="confirm.archive"><source>The notification will be archived and will no longer be visible. Continue?</source><target>De notificatie wordt gearchiveerd en is niet meer zichtbaar. Doorgaan?</target></trans-unit>
+      <trans-unit id="confirm.default"><source>Are you sure?</source><target>Weet je het zeker?</target></trans-unit>
+
+      <!-- Preview -->
+      <trans-unit id="preview.title"><source>Preview</source><target>Preview</target></trans-unit>
+      <trans-unit id="preview.description"><source>This is how the notification will look for editors.</source><target>Zo leest deze notificatie straks voor redacteurs.</target></trans-unit>
+      <trans-unit id="preview.defaultMeta"><source>Not yet scheduled</source><target>Nog niet ingepland</target></trans-unit>
+      <trans-unit id="preview.defaultTitle"><source>No title entered yet</source><target>Nog geen titel ingevuld</target></trans-unit>
+      <trans-unit id="preview.heading"><source>Your message appears here</source><target>Hier verschijnt je bericht</target></trans-unit>
+      <trans-unit id="preview.text"><source>Write markdown in the text field on the left.</source><target>Schrijf markdown in het tekstveld links.</target></trans-unit>
+      <trans-unit id="preview.visibleFromTo"><source>Visible from {0} until {1}</source><target>Zichtbaar van {0} tot {1}</target></trans-unit>
+      <trans-unit id="preview.visibleFrom"><source>Visible from {0}</source><target>Zichtbaar vanaf {0}</target></trans-unit>
+      <trans-unit id="preview.visibleUntil"><source>Visible until {0}</source><target>Zichtbaar tot {0}</target></trans-unit>
+
+      <!-- Module.js -->
+      <trans-unit id="js.enterUrl"><source>Enter a URL</source><target>Voer een URL in</target></trans-unit>
+      <trans-unit id="js.linkText"><source>link text</source><target>linktekst</target></trans-unit>
+      <trans-unit id="js.uploadFailed"><source>Upload failed: {0}</source><target>Upload mislukt: {0}</target></trans-unit>
+      <trans-unit id="js.unknownError"><source>unknown error</source><target>onbekende fout</target></trans-unit>
+      <trans-unit id="js.uploadNetworkError"><source>Upload failed: network error</source><target>Upload mislukt: netwerkfout</target></trans-unit>
+
+      <!-- Plugin.js -->
+      <trans-unit id="plugin.notifications"><source>Notifications</source><target>Notificaties</target></trans-unit>
+      <trans-unit id="plugin.close"><source>Close</source><target>Sluiten</target></trans-unit>
+      <trans-unit id="plugin.unreadCount"><source>{0} unread</source><target>{0} ongelezen</target></trans-unit>
+      <trans-unit id="plugin.empty"><source>There are currently no notifications.</source><target>Er zijn momenteel geen notificaties.</target></trans-unit>
+      <trans-unit id="plugin.dismiss"><source>Hide</source><target>Verbergen</target></trans-unit>
+      <trans-unit id="plugin.markUnread"><source>Mark as unread</source><target>Markeer als ongelezen</target></trans-unit>
+      <trans-unit id="plugin.showHidden"><source>Show hidden notifications</source><target>Toon verborgen notificaties</target></trans-unit>
+      <trans-unit id="plugin.hideHidden"><source>Hide hidden notifications</source><target>Verberg verborgen notificaties</target></trans-unit>
+      <trans-unit id="plugin.newNotification"><source>{0} new notification</source><target>{0} nieuwe notificatie</target></trans-unit>
+      <trans-unit id="plugin.newNotifications"><source>{0} new notifications</source><target>{0} nieuwe notificaties</target></trans-unit>
+      <trans-unit id="plugin.clickToView"><source>Click to view</source><target>Klik om te bekijken</target></trans-unit>
+      <trans-unit id="plugin.unhide"><source>Unhide</source><target>Zichtbaar maken</target></trans-unit>
+      <trans-unit id="plugin.delete"><source>Delete</source><target>Verwijderen</target></trans-unit>
+      <trans-unit id="plugin.confirmDelete"><source>Permanently delete this notification?</source><target>Deze notificatie definitief verwijderen?</target></trans-unit>
+      <trans-unit id="plugin.markRead"><source>Mark as read</source><target>Markeer als gelezen</target></trans-unit>
+      <trans-unit id="plugin.markAllRead"><source>Mark all read</source><target>Alles gelezen</target></trans-unit>
+
+      <!-- Show window -->
+      <trans-unit id="showWindow.immediate"><source>immediate</source><target>direct</target></trans-unit>
+      <trans-unit id="showWindow.unlimited"><source>unlimited</source><target>onbeperkt</target></trans-unit>
     </body>
   </file>
 </xliff>

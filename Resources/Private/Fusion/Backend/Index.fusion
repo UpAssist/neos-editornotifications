@@ -1,3 +1,15 @@
+prototype(UpAssist.Neos.EditorNotifications:Helper.FormAction) < prototype(Neos.Fusion:Component) {
+    action = Neos.Fusion:ActionUri
+    content = ''
+
+    renderer = afx`
+        <form method="post" action={props.action}>
+            <input type="hidden" name="__csrfToken" value={Security.csrfToken()} />
+            {props.content}
+        </form>
+    `
+}
+
 prototype(UpAssist.Neos.EditorNotifications:Backend.Index) < prototype(Neos.Fusion:Component) {
     filter = ${filter}
     filters = ${filters}
@@ -7,14 +19,15 @@ prototype(UpAssist.Neos.EditorNotifications:Backend.Index) < prototype(Neos.Fusi
     pageNumbers = ${pageNumbers}
     totalCount = ${totalCount}
     flashMessages = ${flashMessages}
+    locale = ${interfaceLanguage}
 
     renderer = afx`
         <div class="est-notifications-module">
             <header class="est-notifications-header">
                 <div>
-                    <h1>Redacteurnotificaties</h1>
+                    <h1>{Translation.translate('index.title', 'Editor notifications', [], 'Main', 'UpAssist.Neos.EditorNotifications', null, props.locale)}</h1>
                 </div>
-                <Neos.Fusion:Link.Action href.action="new" class="neos-button neos-button-primary">Nieuwe notificatie</Neos.Fusion:Link.Action>
+                <Neos.Fusion:Link.Action href.action="new" class="neos-button neos-button-primary">{Translation.translate('index.newButton', 'New notification', [], 'Main', 'UpAssist.Neos.EditorNotifications', null, props.locale)}</Neos.Fusion:Link.Action>
             </header>
 
             <UpAssist.Neos.EditorNotifications:Component.FlashMessages flashMessages={props.flashMessages} />
@@ -27,27 +40,27 @@ prototype(UpAssist.Neos.EditorNotifications:Backend.Index) < prototype(Neos.Fusi
                             href.arguments.filter={item.value}
                             class={'neos-button ' + (props.filter == item.value ? 'neos-button-primary' : '')}
                         >
-                            {item.label}
+                            {item.label} <span class="est-notifications-filterCount">{item.count}</span>
                         </Neos.Fusion:Link.Action>
                     </Neos.Fusion:Loop>
-                    <span class="est-help est-help--filters" tabindex="0" aria-label="Uitleg over verlopen en archief">
+                    <span class="est-help est-help--filters" tabindex="0" aria-label={Translation.translate('index.helpAriaLabel', 'Explanation of expired and archive', [], 'Main', 'UpAssist.Neos.EditorNotifications', null, props.locale)}>
                         <i class="fas fa-question-circle neos-help-message-icon" aria-hidden="true"></i>
                         <span class="est-helpText">
-                            "Verlopen" notificaties zijn automatisch niet meer actief doordat hun zichtbaarheid is afgelopen. "Archief" is voor notificaties die je handmatig afsluit als admin.
+                            {Translation.translate('index.helpText', '"Expired" notifications are automatically no longer active because their visibility has ended. "Archive" is for notifications you manually close as an admin.', [], 'Main', 'UpAssist.Neos.EditorNotifications', null, props.locale)}
                         </span>
                     </span>
                 </div>
-                <span class="est-notifications-count">{props.totalCount} items</span>
+                <span class="est-notifications-count">{Translation.translate('index.itemCount', '{0} items', [props.totalCount], 'Main', 'UpAssist.Neos.EditorNotifications', null, props.locale)}</span>
             </div>
 
             <div class="est-notifications-tableWrap">
                 <table class="neos-table est-notifications-table">
                     <thead>
                         <tr>
-                            <th>Titel</th>
-                            <th>Status</th>
-                            <th>Publicatie</th>
-                            <th>Zichtbaarheid</th>
+                            <th>{Translation.translate('table.title', 'Title', [], 'Main', 'UpAssist.Neos.EditorNotifications', null, props.locale)}</th>
+                            <th>{Translation.translate('table.status', 'Status', [], 'Main', 'UpAssist.Neos.EditorNotifications', null, props.locale)}</th>
+                            <th>{Translation.translate('table.publication', 'Publication', [], 'Main', 'UpAssist.Neos.EditorNotifications', null, props.locale)}</th>
+                            <th>{Translation.translate('table.visibility', 'Visibility', [], 'Main', 'UpAssist.Neos.EditorNotifications', null, props.locale)}</th>
                             <th></th>
                         </tr>
                     </thead>
@@ -56,7 +69,7 @@ prototype(UpAssist.Neos.EditorNotifications:Backend.Index) < prototype(Neos.Fusi
                             <tr>
                                 <td>
                                     <strong>{item.title}</strong>
-                                    <div class="est-notifications-muted">Aangemaakt op {item.createdAt}</div>
+                                    <div class="est-notifications-muted">{Translation.translate('table.createdAt', 'Created on {0}', [item.createdAt], 'Main', 'UpAssist.Neos.EditorNotifications', null, props.locale)}</div>
                                 </td>
                                 <td>{item.status}</td>
                                 <td>{item.publishedAt}</td>
@@ -67,31 +80,29 @@ prototype(UpAssist.Neos.EditorNotifications:Backend.Index) < prototype(Neos.Fusi
                                             href.action="edit"
                                             href.arguments.notificationIdentifier={item.identifier}
                                             class="neos-button est-notifications-actionButton"
-                                            title="Bewerken"
-                                            aria-label="Bewerken"
+                                            title={Translation.translate('action.edit', 'Edit', [], 'Main', 'UpAssist.Neos.EditorNotifications', null, props.locale)}
+                                            aria-label={Translation.translate('action.edit', 'Edit', [], 'Main', 'UpAssist.Neos.EditorNotifications', null, props.locale)}
                                         >
                                             <i class="fas fa-pencil-alt" aria-hidden="true"></i>
                                         </Neos.Fusion:Link.Action>
-                                        <Neos.Fusion:Link.Action
-                                            href.action="archive"
-                                            href.arguments.notificationIdentifier={item.identifier}
-                                            class="neos-button est-notifications-actionButton"
-                                            title="Archiveren"
-                                            aria-label="Archiveren"
-                                            @if.canArchive={!item.isArchived}
-                                        >
-                                            <i class="fas fa-archive" aria-hidden="true"></i>
-                                        </Neos.Fusion:Link.Action>
-                                        <Neos.Fusion:Link.Action
-                                            href.action="delete"
-                                            href.arguments.notificationIdentifier={item.identifier}
-                                            class="neos-button est-notifications-actionButton"
-                                            title="Verwijderen"
-                                            aria-label="Verwijderen"
-                                            @if.canDelete={item.isDraft}
-                                        >
-                                            <i class="fas fa-trash" aria-hidden="true"></i>
-                                        </Neos.Fusion:Link.Action>
+                                        <UpAssist.Neos.EditorNotifications:Helper.FormAction action.action="archive" action.arguments.notificationIdentifier={item.identifier} @if.canArchive={!item.isArchived}>
+                                            <button type="submit"
+                                                class="neos-button est-notifications-actionButton"
+                                                title={Translation.translate('action.archive', 'Archive', [], 'Main', 'UpAssist.Neos.EditorNotifications', null, props.locale)}
+                                                aria-label={Translation.translate('action.archive', 'Archive', [], 'Main', 'UpAssist.Neos.EditorNotifications', null, props.locale)}
+                                            >
+                                                <i class="fas fa-archive" aria-hidden="true"></i>
+                                            </button>
+                                        </UpAssist.Neos.EditorNotifications:Helper.FormAction>
+                                        <UpAssist.Neos.EditorNotifications:Helper.FormAction action.action="delete" action.arguments.notificationIdentifier={item.identifier} @if.canDelete={item.canDelete}>
+                                            <button type="submit"
+                                                class="neos-button est-notifications-actionButton"
+                                                title={Translation.translate('action.delete', 'Delete', [], 'Main', 'UpAssist.Neos.EditorNotifications', null, props.locale)}
+                                                aria-label={Translation.translate('action.delete', 'Delete', [], 'Main', 'UpAssist.Neos.EditorNotifications', null, props.locale)}
+                                            >
+                                                <i class="fas fa-trash" aria-hidden="true"></i>
+                                            </button>
+                                        </UpAssist.Neos.EditorNotifications:Helper.FormAction>
                                     </div>
                                 </td>
                             </tr>
@@ -99,7 +110,7 @@ prototype(UpAssist.Neos.EditorNotifications:Backend.Index) < prototype(Neos.Fusi
                     </tbody>
                 </table>
                 <div class="est-notifications-empty" @if.empty={Array.length(props.notifications) == 0}>
-                    Geen notificaties gevonden voor dit filter.
+                    {Translation.translate('index.empty', 'No notifications found for this filter.', [], 'Main', 'UpAssist.Neos.EditorNotifications', null, props.locale)}
                 </div>
             </div>
 

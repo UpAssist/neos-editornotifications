@@ -4,14 +4,31 @@ prototype(UpAssist.Neos.EditorNotifications:Backend.Form) < prototype(Neos.Fusio
     formData = ${formData}
     validationErrors = ${validationErrors}
     flashMessages = ${flashMessages}
+    locale = ${interfaceLanguage}
 
     renderer = afx`
-        <div class="est-notifications-module">
+        <div class="est-notifications-module"
+            data-translations={Json.stringify({
+                'js.enterUrl': Translation.translate('js.enterUrl', 'Enter a URL', [], 'Main', 'UpAssist.Neos.EditorNotifications', null, props.locale),
+                'js.linkText': Translation.translate('js.linkText', 'link text', [], 'Main', 'UpAssist.Neos.EditorNotifications', null, props.locale),
+                'js.uploadFailed': Translation.translate('js.uploadFailed', 'Upload failed: {0}', [], 'Main', 'UpAssist.Neos.EditorNotifications', null, props.locale),
+                'js.unknownError': Translation.translate('js.unknownError', 'unknown error', [], 'Main', 'UpAssist.Neos.EditorNotifications', null, props.locale),
+                'js.uploadNetworkError': Translation.translate('js.uploadNetworkError', 'Upload failed: network error', [], 'Main', 'UpAssist.Neos.EditorNotifications', null, props.locale),
+                'preview.defaultMeta': Translation.translate('preview.defaultMeta', 'Not yet scheduled', [], 'Main', 'UpAssist.Neos.EditorNotifications', null, props.locale),
+                'preview.defaultTitle': Translation.translate('preview.defaultTitle', 'No title entered yet', [], 'Main', 'UpAssist.Neos.EditorNotifications', null, props.locale),
+                'preview.heading': Translation.translate('preview.heading', 'Your message appears here', [], 'Main', 'UpAssist.Neos.EditorNotifications', null, props.locale),
+                'preview.text': Translation.translate('preview.text', 'Write markdown in the text field on the left.', [], 'Main', 'UpAssist.Neos.EditorNotifications', null, props.locale),
+                'preview.visibleFromTo': Translation.translate('preview.visibleFromTo', 'Visible from {0} until {1}', [], 'Main', 'UpAssist.Neos.EditorNotifications', null, props.locale),
+                'preview.visibleFrom': Translation.translate('preview.visibleFrom', 'Visible from {0}', [], 'Main', 'UpAssist.Neos.EditorNotifications', null, props.locale),
+                'preview.visibleUntil': Translation.translate('preview.visibleUntil', 'Visible until {0}', [], 'Main', 'UpAssist.Neos.EditorNotifications', null, props.locale),
+                'confirm.default': Translation.translate('confirm.default', 'Are you sure?', [], 'Main', 'UpAssist.Neos.EditorNotifications', null, props.locale)
+            })}
+        >
             <header class="est-notifications-header">
                 <div>
-                    <h1>{props.mode == 'new' ? 'Nieuwe notificatie' : props.notification.title}</h1>
+                    <h1>{props.mode == 'new' ? Translation.translate('form.newTitle', 'New notification', [], 'Main', 'UpAssist.Neos.EditorNotifications', null, props.locale) : props.notification.title}</h1>
                 </div>
-                <Neos.Fusion:Link.Action href.action="index" class="neos-button">Terug naar overzicht</Neos.Fusion:Link.Action>
+                <Neos.Fusion:Link.Action href.action="index" class="neos-button">{Translation.translate('form.backButton', 'Back to overview', [], 'Main', 'UpAssist.Neos.EditorNotifications', null, props.locale)}</Neos.Fusion:Link.Action>
             </header>
 
             <UpAssist.Neos.EditorNotifications:Component.FlashMessages flashMessages={props.flashMessages} />
@@ -25,7 +42,7 @@ prototype(UpAssist.Neos.EditorNotifications:Backend.Form) < prototype(Neos.Fusio
             </div>
 
             <div class="neos-message neos-message-error" @if.hasValidationErrors={Array.length(props.validationErrors) > 0}>
-                <strong>Controleer het formulier</strong>
+                <strong>{Translation.translate('form.validationHeading', 'Check the form', [], 'Main', 'UpAssist.Neos.EditorNotifications', null, props.locale)}</strong>
                 <ul>
                     <Neos.Fusion:Loop items={props.validationErrors}>
                         <li>{item}</li>
@@ -52,10 +69,10 @@ prototype(UpAssist.Neos.EditorNotifications:Backend.Form) < prototype(Neos.Fusio
 
                     <label class="est-field">
                         <span>
-                            Titel
+                            {Translation.translate('field.title', 'Title', [], 'Main', 'UpAssist.Neos.EditorNotifications', null, props.locale)}
                             <span class="est-help" tabindex="0">
                                 <i class="fas fa-question-circle neos-help-message-icon" aria-hidden="true"></i>
-                                <span class="est-helpText">Gebruik een korte, scanbare titel zodat redacteurs meteen zien waar de update over gaat.</span>
+                                <span class="est-helpText">{Translation.translate('field.titleHelp', 'Use a short, scannable title so editors immediately see what the update is about.', [], 'Main', 'UpAssist.Neos.EditorNotifications', null, props.locale)}</span>
                             </span>
                         </span>
                         <input
@@ -63,50 +80,50 @@ prototype(UpAssist.Neos.EditorNotifications:Backend.Form) < prototype(Neos.Fusio
                             name="moduleArguments[title]"
                             value={props.formData.title}
                             required="required"
-                            placeholder="Bijvoorbeeld: Nieuwe reviewworkflow staat live"
+                            placeholder={Translation.translate('field.titlePlaceholder', 'Example: New review workflow is live', [], 'Main', 'UpAssist.Neos.EditorNotifications', null, props.locale)}
                         />
                     </label>
 
                     <div class="est-field">
                         <div class="est-fieldHeading">
                             <span>
-                                Bericht
+                                {Translation.translate('field.content', 'Message', [], 'Main', 'UpAssist.Neos.EditorNotifications', null, props.locale)}
                                 <span class="est-help" tabindex="0">
                                     <i class="fas fa-question-circle neos-help-message-icon" aria-hidden="true"></i>
-                                    <span class="est-helpText">Schrijf in Markdown. Gebruik **vet**, *cursief*, - voor lijsten, [tekst](url) voor links.</span>
+                                    <span class="est-helpText">{Translation.translate('field.contentHelp', 'Write in Markdown. Use **bold**, *italic*, - for lists, [text](url) for links.', [], 'Main', 'UpAssist.Neos.EditorNotifications', null, props.locale)}</span>
                                 </span>
                             </span>
                         </div>
                         <div class="est-editorToolbar">
-                            <button type="button" class="neos-button" data-md-action="bold" title="Vet (Ctrl+B)" aria-label="Vet">
+                            <button type="button" class="neos-button" data-md-action="bold" title={Translation.translate('toolbar.bold', 'Bold (Ctrl+B)', [], 'Main', 'UpAssist.Neos.EditorNotifications', null, props.locale)} aria-label={Translation.translate('toolbar.boldShort', 'Bold', [], 'Main', 'UpAssist.Neos.EditorNotifications', null, props.locale)}>
                                 <i class="fas fa-bold" aria-hidden="true"></i>
                             </button>
-                            <button type="button" class="neos-button" data-md-action="italic" title="Cursief (Ctrl+I)" aria-label="Cursief">
+                            <button type="button" class="neos-button" data-md-action="italic" title={Translation.translate('toolbar.italic', 'Italic (Ctrl+I)', [], 'Main', 'UpAssist.Neos.EditorNotifications', null, props.locale)} aria-label={Translation.translate('toolbar.italicShort', 'Italic', [], 'Main', 'UpAssist.Neos.EditorNotifications', null, props.locale)}>
                                 <i class="fas fa-italic" aria-hidden="true"></i>
                             </button>
-                            <button type="button" class="neos-button" data-md-action="ul" title="Opsommingslijst" aria-label="Opsommingslijst">
+                            <button type="button" class="neos-button" data-md-action="ul" title={Translation.translate('toolbar.unorderedList', 'Bullet list', [], 'Main', 'UpAssist.Neos.EditorNotifications', null, props.locale)} aria-label={Translation.translate('toolbar.unorderedList', 'Bullet list', [], 'Main', 'UpAssist.Neos.EditorNotifications', null, props.locale)}>
                                 <i class="fas fa-list-ul" aria-hidden="true"></i>
                             </button>
-                            <button type="button" class="neos-button" data-md-action="ol" title="Genummerde lijst" aria-label="Genummerde lijst">
+                            <button type="button" class="neos-button" data-md-action="ol" title={Translation.translate('toolbar.orderedList', 'Numbered list', [], 'Main', 'UpAssist.Neos.EditorNotifications', null, props.locale)} aria-label={Translation.translate('toolbar.orderedList', 'Numbered list', [], 'Main', 'UpAssist.Neos.EditorNotifications', null, props.locale)}>
                                 <i class="fas fa-list-ol" aria-hidden="true"></i>
                             </button>
-                            <button type="button" class="neos-button" data-md-action="link" title="Link invoegen" aria-label="Link invoegen">
+                            <button type="button" class="neos-button" data-md-action="link" title={Translation.translate('toolbar.insertLink', 'Insert link', [], 'Main', 'UpAssist.Neos.EditorNotifications', null, props.locale)} aria-label={Translation.translate('toolbar.insertLink', 'Insert link', [], 'Main', 'UpAssist.Neos.EditorNotifications', null, props.locale)}>
                                 <i class="fas fa-link" aria-hidden="true"></i>
                             </button>
-                            <button type="button" class="neos-button" data-md-action="image" title="Afbeelding uploaden" aria-label="Afbeelding uploaden">
+                            <button type="button" class="neos-button" data-md-action="image" title={Translation.translate('toolbar.uploadImage', 'Upload image', [], 'Main', 'UpAssist.Neos.EditorNotifications', null, props.locale)} aria-label={Translation.translate('toolbar.uploadImage', 'Upload image', [], 'Main', 'UpAssist.Neos.EditorNotifications', null, props.locale)}>
                                 <i class="fas fa-image" aria-hidden="true"></i>
                             </button>
                             <input type="file" data-md-image-upload="true" accept="image/*" class="est-hiddenFileInput" />
                             <span class="est-help est-help--toolbar" tabindex="0">
                                 <i class="fas fa-question-circle neos-help-message-icon" aria-hidden="true"></i>
-                                <span class="est-helpText">Markdown: **vet**, *cursief*, - lijst, 1. nummering, [tekst](url), ![alt](url)</span>
+                                <span class="est-helpText">{Translation.translate('field.markdownHelp', 'Markdown: **bold**, *italic*, - list, 1. numbering, [text](url), ![alt](url)', [], 'Main', 'UpAssist.Neos.EditorNotifications', null, props.locale)}</span>
                             </span>
                         </div>
                         <textarea
                             name="moduleArguments[content]"
                             class="est-editor est-editor--markdown"
                             data-md-editor="true"
-                            placeholder="Start met een korte samenvatting. Voeg daarna eventueel bullets, links of screenshots toe.&#10;&#10;Markdown: **vet**, *cursief*, - lijst, [tekst](url)"
+                            placeholder={Translation.translate('field.contentPlaceholder', 'Start with a short summary. Then optionally add bullets, links, or screenshots.', [], 'Main', 'UpAssist.Neos.EditorNotifications', null, props.locale)}
                             rows="12"
                         >{props.formData.content}</textarea>
                     </div>
@@ -114,20 +131,20 @@ prototype(UpAssist.Neos.EditorNotifications:Backend.Form) < prototype(Neos.Fusio
                     <div class="est-fieldGrid">
                         <label class="est-field">
                             <span>
-                                Toon vanaf
+                                {Translation.translate('field.showFrom', 'Show from', [], 'Main', 'UpAssist.Neos.EditorNotifications', null, props.locale)}
                                 <span class="est-help" tabindex="0">
                                     <i class="fas fa-question-circle neos-help-message-icon" aria-hidden="true"></i>
-                                    <span class="est-helpText">Laat leeg om de notificatie direct zichtbaar te maken zodra je publiceert.</span>
+                                    <span class="est-helpText">{Translation.translate('field.showFromHelp', 'Leave empty to make the notification visible immediately when you publish.', [], 'Main', 'UpAssist.Neos.EditorNotifications', null, props.locale)}</span>
                                 </span>
                             </span>
                             <input type="datetime-local" name="moduleArguments[showFrom]" value={props.formData.showFrom} />
                         </label>
                         <label class="est-field">
                             <span>
-                                Toon tot
+                                {Translation.translate('field.showUntil', 'Show until', [], 'Main', 'UpAssist.Neos.EditorNotifications', null, props.locale)}
                                 <span class="est-help" tabindex="0">
                                     <i class="fas fa-question-circle neos-help-message-icon" aria-hidden="true"></i>
-                                    <span class="est-helpText">Optioneel. Handig voor tijdelijke mededelingen of release-updates.</span>
+                                    <span class="est-helpText">{Translation.translate('field.showUntilHelp', 'Optional. Useful for temporary announcements or release updates.', [], 'Main', 'UpAssist.Neos.EditorNotifications', null, props.locale)}</span>
                                 </span>
                             </span>
                             <input type="datetime-local" name="moduleArguments[showUntil]" value={props.formData.showUntil} />
@@ -137,7 +154,7 @@ prototype(UpAssist.Neos.EditorNotifications:Backend.Form) < prototype(Neos.Fusio
                     <div class="est-notifications-formActions">
                         <Neos.Fusion:Fragment @if.isNew={props.mode == 'new'}>
                             <button type="submit" class="neos-button">
-                                Opslaan als concept
+                                {Translation.translate('button.saveDraft', 'Save as draft', [], 'Main', 'UpAssist.Neos.EditorNotifications', null, props.locale)}
                             </button>
                             <button
                                 type="submit"
@@ -149,7 +166,7 @@ prototype(UpAssist.Neos.EditorNotifications:Backend.Form) < prototype(Neos.Fusio
                                     @path="attributes.formaction"
                                 />
                                 <i class="fas fa-paper-plane" aria-hidden="true"></i>
-                                Opslaan &amp; publiceren
+                                {Translation.translate('button.saveAndPublish', 'Save & publish', [], 'Main', 'UpAssist.Neos.EditorNotifications', null, props.locale)}
                             </button>
                         </Neos.Fusion:Fragment>
 
@@ -158,7 +175,7 @@ prototype(UpAssist.Neos.EditorNotifications:Backend.Form) < prototype(Neos.Fusio
                                 type="submit"
                                 formmethod="post"
                                 class="neos-button neos-button-danger est-confirmAction"
-                                data-confirm-message="Dit concept wordt permanent verwijderd. Weet je het zeker?"
+                                data-confirm-message={Translation.translate('confirm.delete', 'This draft will be permanently deleted. Are you sure?', [], 'Main', 'UpAssist.Neos.EditorNotifications', null, props.locale)}
                             >
                                 <Neos.Fusion:UriBuilder
                                     action="delete"
@@ -166,10 +183,10 @@ prototype(UpAssist.Neos.EditorNotifications:Backend.Form) < prototype(Neos.Fusio
                                     @path="attributes.formaction"
                                 />
                                 <i class="fas fa-trash" aria-hidden="true"></i>
-                                Verwijderen
+                                {Translation.translate('button.delete', 'Delete', [], 'Main', 'UpAssist.Neos.EditorNotifications', null, props.locale)}
                             </button>
                             <button type="submit" class="neos-button">
-                                Concept bijwerken
+                                {Translation.translate('button.updateDraft', 'Update draft', [], 'Main', 'UpAssist.Neos.EditorNotifications', null, props.locale)}
                             </button>
                             <button
                                 type="submit"
@@ -182,7 +199,7 @@ prototype(UpAssist.Neos.EditorNotifications:Backend.Form) < prototype(Neos.Fusio
                                     @path="attributes.formaction"
                                 />
                                 <i class="fas fa-paper-plane" aria-hidden="true"></i>
-                                Publiceren
+                                {Translation.translate('button.publish', 'Publish', [], 'Main', 'UpAssist.Neos.EditorNotifications', null, props.locale)}
                             </button>
                         </Neos.Fusion:Fragment>
 
@@ -191,20 +208,20 @@ prototype(UpAssist.Neos.EditorNotifications:Backend.Form) < prototype(Neos.Fusio
                                 type="submit"
                                 formmethod="post"
                                 class="neos-button est-confirmAction"
-                                data-confirm-message="De notificatie wordt weer een concept en is niet meer zichtbaar voor redacteurs. Doorgaan?"
+                                data-confirm-message={Translation.translate('confirm.unpublish', 'The notification will become a draft again and will no longer be visible to editors. Continue?', [], 'Main', 'UpAssist.Neos.EditorNotifications', null, props.locale)}
                             >
                                 <Neos.Fusion:UriBuilder
                                     action="unpublish"
                                     arguments.notificationIdentifier={props.notification.identifier}
                                     @path="attributes.formaction"
                                 />
-                                Publicatie intrekken
+                                {Translation.translate('button.unpublish', 'Revoke publication', [], 'Main', 'UpAssist.Neos.EditorNotifications', null, props.locale)}
                             </button>
                             <button
                                 type="submit"
                                 formmethod="post"
                                 class="neos-button est-confirmAction"
-                                data-confirm-message="De notificatie wordt gearchiveerd en is niet meer zichtbaar. Doorgaan?"
+                                data-confirm-message={Translation.translate('confirm.archive', 'The notification will be archived and will no longer be visible. Continue?', [], 'Main', 'UpAssist.Neos.EditorNotifications', null, props.locale)}
                             >
                                 <Neos.Fusion:UriBuilder
                                     action="archive"
@@ -212,10 +229,10 @@ prototype(UpAssist.Neos.EditorNotifications:Backend.Form) < prototype(Neos.Fusio
                                     @path="attributes.formaction"
                                 />
                                 <i class="fas fa-archive" aria-hidden="true"></i>
-                                Archiveren
+                                {Translation.translate('button.archive', 'Archive', [], 'Main', 'UpAssist.Neos.EditorNotifications', null, props.locale)}
                             </button>
                             <button type="submit" class="neos-button neos-button-primary">
-                                Bijwerken
+                                {Translation.translate('button.update', 'Update', [], 'Main', 'UpAssist.Neos.EditorNotifications', null, props.locale)}
                             </button>
                         </Neos.Fusion:Fragment>
 
@@ -231,7 +248,7 @@ prototype(UpAssist.Neos.EditorNotifications:Backend.Form) < prototype(Neos.Fusio
                                     @path="attributes.formaction"
                                 />
                                 <i class="fas fa-undo" aria-hidden="true"></i>
-                                Terug naar concept
+                                {Translation.translate('button.saveDraft', 'Save as draft', [], 'Main', 'UpAssist.Neos.EditorNotifications', null, props.locale)}
                             </button>
                         </Neos.Fusion:Fragment>
                     </div>
@@ -239,12 +256,12 @@ prototype(UpAssist.Neos.EditorNotifications:Backend.Form) < prototype(Neos.Fusio
 
                 <aside class="est-notifications-preview">
                     <div class="est-previewHeader">
-                        <h2>Preview</h2>
-                        <p>Zo leest deze notificatie straks voor redacteurs.</p>
+                        <h2>{Translation.translate('preview.title', 'Preview', [], 'Main', 'UpAssist.Neos.EditorNotifications', null, props.locale)}</h2>
+                        <p>{Translation.translate('preview.description', 'This is how the notification will look for editors.', [], 'Main', 'UpAssist.Neos.EditorNotifications', null, props.locale)}</p>
                     </div>
                     <div class="est-notifications-previewCard">
-                        <div class="est-notifications-previewMeta" id="notification-preview-meta">Nog niet ingepland</div>
-                        <h3 id="notification-preview-title">Nog geen titel ingevuld</h3>
+                        <div class="est-notifications-previewMeta" id="notification-preview-meta">{Translation.translate('preview.defaultMeta', 'Not yet scheduled', [], 'Main', 'UpAssist.Neos.EditorNotifications', null, props.locale)}</div>
+                        <h3 id="notification-preview-title">{Translation.translate('preview.defaultTitle', 'No title entered yet', [], 'Main', 'UpAssist.Neos.EditorNotifications', null, props.locale)}</h3>
                         <div id="notification-preview" class="est-notifications-previewCanvas"></div>
                     </div>
                 </aside>
