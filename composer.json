@@ -12,8 +12,8 @@
     ],
     "homepage": "https://github.com/UpAssist/neos-editornotifications",
     "require": {
-        "neos/flow": "*",
-        "neos/neos": "*",
+        "neos/flow": "^9.0",
+        "neos/neos": "^9.0",
         "league/commonmark": "^2.0"
     },
     "autoload": {
