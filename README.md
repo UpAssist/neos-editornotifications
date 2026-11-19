@@ -17,7 +17,7 @@ Admin-managed backend notifications for Neos CMS editors.
 
 ## Requirements
 
-- Neos CMS 8.x or 9.x
+- Neos CMS 8.3, 8.4 or 9.x (tested on 8.3, 8.4, 9.0, 9.1 and 9.2)
 - PHP 8.1+
 - `league/commonmark` ^2.0 (installed via Composer)
 
