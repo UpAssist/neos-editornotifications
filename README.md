@@ -21,6 +21,13 @@ Admin-managed backend notifications for Neos CMS editors.
 - PHP 8.1+
 - `league/commonmark` ^2.0 (installed via Composer)
 
+## Compatibility
+
+| Version | Neos |
+| --- | --- |
+| 1.0.3+ | 8.3, 8.4, 9.0, 9.1, 9.2 |
+| 1.0.0 – 1.0.2 | `*` constraints, not tested |
+
 ## Installation
 
 ```bash

@@ -1,0 +1,11 @@
+# The Composer requirements are ranges without a lockfile (library package), and there is no
+# npm build, so only the GitHub Actions are tracked. Dependabot alerts still cover the Composer manifest.
+version: 2
+updates:
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: monthly
+    groups:
+      github-actions:
+        patterns: ['*']
