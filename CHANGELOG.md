@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.0.3] - 2026-11-19
+
+### Bug Fixes
+
+- Replace the `*` constraints on `neos/flow` and `neos/neos` with `^8.3 || ^9.0`, the range tested on Neos 8.3, 8.4, 9.0, 9.1 and 9.2
+- Require `neos/fusion` and `neos/neos-ui` explicitly (used by the module view and the content module plugin)
+
 ## [1.0.2] - 2026-04-03
 
 ### Documentation
