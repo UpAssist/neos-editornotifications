@@ -8,6 +8,7 @@
     var expandedItemId = null;
     var showDismissed = false;
     var i18n = {};
+    var uiLocale;
     var refreshLock = false;
 
     function tt(key, fallback, replacements) {
@@ -18,6 +19,26 @@
             }
         }
         return text;
+    }
+
+    // Interface language from the API (e.g. "en", "de", "nl"); falls back to the browser locale.
+    function formatDateTime(value) {
+        var opts = { day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit" };
+        try {
+            return new Date(value).toLocaleString(uiLocale, opts);
+        } catch (e) {
+            return new Date(value).toLocaleString(undefined, opts);
+        }
+    }
+
+    // Lets the backend module show and parse dates in the editor's own timezone.
+    function rememberTimeZone() {
+        try {
+            var tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
+            if (tz) {
+                document.cookie = "est_notifications_tz=" + encodeURIComponent(tz) + "; path=/neos; max-age=31536000; SameSite=Lax";
+            }
+        } catch (e) { /* no Intl: module keeps the server timezone */ }
     }
 
     function getCsrfToken() {
@@ -363,7 +384,8 @@
         headingStrong.textContent = tt("plugin.notifications", "Notifications");
         countEl.textContent = String(data.count);
         countEl.className = "editor-notifications-badge__count" + (data.count === 0 ? " is-zero" : "");
-        badge.style.display = (data.items.length === 0 && data.count === 0) ? "none" : "";
+        // Keep the bell while hidden notifications exist, so they can be shown again.
+        badge.style.display = (data.items.length === 0 && data.count === 0 && !data.hiddenCount) ? "none" : "";
         countLabel.textContent = data.count > 0 ? tt("plugin.unreadCount", "{0} unread", [data.count]) : "";
 
         // Rebuild list
@@ -374,6 +396,9 @@
             emptyMsg.className = "editor-notifications-panel__empty";
             emptyMsg.textContent = tt("plugin.empty", "There are currently no notifications.");
             list.appendChild(emptyMsg);
+            if (data.hiddenCount || showDismissed) {
+                list.appendChild(createDismissedToggle(wrapper));
+            }
             return;
         }
 
@@ -404,7 +429,7 @@
             info.appendChild(titleSpan);
             var dateSpan = document.createElement("span");
             dateSpan.className = "editor-notification-item__date";
-            dateSpan.textContent = item.publishedAt ? new Date(item.publishedAt).toLocaleString("nl-NL") : "";
+            dateSpan.textContent = item.publishedAt ? formatDateTime(item.publishedAt) : "";
             info.appendChild(dateSpan);
             headerBtn.appendChild(info);
 
@@ -486,7 +511,10 @@
             list.appendChild(article);
         });
 
-        // Toggle dismissed
+        list.appendChild(createDismissedToggle(wrapper));
+    }
+
+    function createDismissedToggle(wrapper) {
         var toggleBtn = document.createElement("button");
         toggleBtn.type = "button";
         toggleBtn.className = "editor-notifications-panel__toggle-dismissed";
@@ -497,7 +525,7 @@
             showDismissed = !showDismissed;
             refresh(wrapper);
         });
-        list.appendChild(toggleBtn);
+        return toggleBtn;
     }
 
     // ── API actions ──────────────────────────────────────────────
@@ -516,8 +544,14 @@
 
     async function refresh(wrapper) {
         try {
-            var data = await apiRequest("active" + (showDismissed ? "?includeDismissed=1" : ""));
+            // POST, not GET: when the session has expired, Flow stores a GET request as the
+            // "intercepted request" and the next login would redirect to this JSON endpoint.
+            var data = await apiRequest("active", {
+                method: "POST",
+                body: new URLSearchParams({ includeDismissed: showDismissed ? "1" : "0" }),
+            });
             if (data.translations) { i18n = data.translations; }
+            if (data.locale) { uiLocale = String(data.locale).replace("_", "-"); }
             renderPanel(wrapper, data);
         } catch (err) {
             console.warn("EditorNotifications: refresh failed", err);
@@ -537,6 +571,7 @@
     }
 
     function start() {
+        rememberTimeZone();
         boot().catch(function () {});
         if (started) return;
 

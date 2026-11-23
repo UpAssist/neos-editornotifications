@@ -131,12 +131,13 @@ class NotificationService
     {
         $user = $this->getCurrentUser();
         if ($user === null) {
-            return ['count' => 0, 'items' => []];
+            return ['count' => 0, 'hiddenCount' => 0, 'items' => []];
         }
 
         $notifications = $this->notificationRepository->findActive();
         $items = [];
         $unreadCount = 0;
+        $hiddenCount = 0;
 
         foreach ($notifications as $notification) {
             $state = $this->notificationReadStateRepository->findOneByNotificationAndUser($notification, $user);
@@ -150,6 +151,10 @@ class NotificationService
 
             if (!$isSeen) {
                 $unreadCount++;
+            }
+
+            if ($isDismissed) {
+                $hiddenCount++;
             }
 
             if ($isDismissed && !$includeDismissed) {
@@ -174,6 +179,7 @@ class NotificationService
 
         return [
             'count' => $unreadCount,
+            'hiddenCount' => $hiddenCount,
             'items' => $items,
         ];
     }
