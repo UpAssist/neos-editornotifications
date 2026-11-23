@@ -317,7 +317,28 @@
         });
     }
 
+    // The controller shows and parses dates in the timezone from this cookie.
+    // If it was missing or out of date, reload once so the page uses it.
+    function syncTimeZone() {
+        var tz;
+        try { tz = Intl.DateTimeFormat().resolvedOptions().timeZone; } catch (e) { return false; }
+        if (!tz) { return false; }
+        var match = document.cookie.match(/(?:^|;\s*)est_notifications_tz=([^;]*)/);
+        var current = match ? decodeURIComponent(match[1]) : "";
+        if (current === tz) { return false; }
+        document.cookie = "est_notifications_tz=" + encodeURIComponent(tz) + "; path=/neos; max-age=31536000; SameSite=Lax";
+        var stored = document.cookie.match(/(?:^|;\s*)est_notifications_tz=([^;]*)/);
+        if (!stored || decodeURIComponent(stored[1]) !== tz) { return false; }
+        // location.replace() loads the URL with GET, so nothing is resubmitted.
+        if (document.querySelector("[data-notification-editor], .est-notifications-module")) {
+            window.location.replace(window.location.href);
+            return true;
+        }
+        return false;
+    }
+
     document.addEventListener("DOMContentLoaded", function () {
+        if (syncTimeZone()) { return; }
         document.querySelectorAll("[data-notification-editor]").forEach(initMarkdownEditor);
         initConfirmActions();
     });

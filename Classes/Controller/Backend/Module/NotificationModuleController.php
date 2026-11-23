@@ -20,6 +20,9 @@ class NotificationModuleController extends AbstractModuleController
 {
     private const TRANSLATION_SOURCE = 'Main';
     private const TRANSLATION_PACKAGE = 'UpAssist.Neos.EditorNotifications';
+    private const TIMEZONE_COOKIE = 'est_notifications_tz';
+
+    private ?\DateTimeZone $displayTimeZone = null;
 
     protected $defaultViewObjectName = FusionView::class;
 
@@ -235,11 +238,11 @@ class NotificationModuleController extends AbstractModuleController
         } elseif ($notification->isScheduled($now)) {
             $statusKey = 'scheduled';
             $status = $this->translate('status.scheduled');
-            $statusHint = $this->translate('statusHint.scheduled', [$notification->getShowFrom()->format('d-m-Y H:i')]);
+            $statusHint = $this->translate('statusHint.scheduled', [$this->formatDate($notification->getShowFrom())]);
         } elseif ($notification->isExpired($now)) {
             $statusKey = 'expired';
             $status = $this->translate('status.expired');
-            $statusHint = $this->translate('statusHint.expired', [$notification->getShowUntil()->format('d-m-Y H:i')]);
+            $statusHint = $this->translate('statusHint.expired', [$this->formatDate($notification->getShowUntil())]);
         } elseif ($notification->isActive($now)) {
             $statusKey = 'active';
             $status = $this->translate('status.published');
@@ -252,8 +255,8 @@ class NotificationModuleController extends AbstractModuleController
             'status' => $status,
             'statusKey' => $statusKey,
             'statusHint' => $statusHint,
-            'createdAt' => $notification->getCreatedAt()->format('d-m-Y H:i'),
-            'publishedAt' => $notification->getPublishedAt()?->format('d-m-Y H:i') ?? $this->translate('statusHint.notPublished'),
+            'createdAt' => $this->formatDate($notification->getCreatedAt()),
+            'publishedAt' => $this->formatDate($notification->getPublishedAt()) ?? $this->translate('statusHint.notPublished'),
             'showWindow' => $this->formatShowWindow($notification),
             'isDraft' => $notification->isDraft(),
             'isArchived' => $notification->isArchived(),
@@ -269,8 +272,8 @@ class NotificationModuleController extends AbstractModuleController
     {
         $mapped = $this->mapNotificationForList($notification);
         $mapped['content'] = $notification->getContent();
-        $mapped['showFromRaw'] = $notification->getShowFrom()?->format('Y-m-d\TH:i') ?? '';
-        $mapped['showUntilRaw'] = $notification->getShowUntil()?->format('Y-m-d\TH:i') ?? '';
+        $mapped['showFromRaw'] = $this->formatDate($notification->getShowFrom(), 'Y-m-d\TH:i') ?? '';
+        $mapped['showUntilRaw'] = $this->formatDate($notification->getShowUntil(), 'Y-m-d\TH:i') ?? '';
         return $mapped;
     }
 
@@ -282,8 +285,8 @@ class NotificationModuleController extends AbstractModuleController
         return [
             'title' => $notification->getTitle(),
             'content' => $notification->getContentMarkdown(),
-            'showFrom' => $notification->getShowFrom()?->format('Y-m-d\TH:i') ?? '',
-            'showUntil' => $notification->getShowUntil()?->format('Y-m-d\TH:i') ?? '',
+            'showFrom' => $this->formatDate($notification->getShowFrom(), 'Y-m-d\TH:i') ?? '',
+            'showUntil' => $this->formatDate($notification->getShowUntil(), 'Y-m-d\TH:i') ?? '',
         ];
     }
 
@@ -309,16 +312,45 @@ class NotificationModuleController extends AbstractModuleController
         }
 
         try {
-            return new \DateTime($value);
+            $date = new \DateTime($value, $this->getDisplayTimeZone());
         } catch (\Exception $exception) {
             return null;
         }
+        // Store in PHP's timezone: Doctrine saves the wall time without an offset.
+        return $date->setTimezone(new \DateTimeZone(date_default_timezone_get()));
+    }
+
+    /**
+     * Formats a date in the user's own timezone (see getDisplayTimeZone()).
+     */
+    private function formatDate(?\DateTimeInterface $date, string $format = 'd-m-Y H:i'): ?string
+    {
+        if ($date === null) {
+            return null;
+        }
+        return \DateTimeImmutable::createFromInterface($date)->setTimezone($this->getDisplayTimeZone())->format($format);
+    }
+
+    /**
+     * The browser's timezone, which Module.js and Plugin.js store in a cookie.
+     * Falls back to PHP's timezone when the cookie is missing or invalid.
+     */
+    private function getDisplayTimeZone(): \DateTimeZone
+    {
+        if ($this->displayTimeZone === null) {
+            $cookies = $this->request->getHttpRequest()->getCookieParams();
+            $name = is_string($cookies[self::TIMEZONE_COOKIE] ?? null) ? $cookies[self::TIMEZONE_COOKIE] : '';
+            $this->displayTimeZone = new \DateTimeZone(
+                in_array($name, \DateTimeZone::listIdentifiers(), true) ? $name : date_default_timezone_get()
+            );
+        }
+        return $this->displayTimeZone;
     }
 
     private function formatShowWindow(Notification $notification): string
     {
-        $showFrom = $notification->getShowFrom()?->format('d-m-Y H:i') ?? $this->translate('showWindow.immediate');
-        $showUntil = $notification->getShowUntil()?->format('d-m-Y H:i') ?? $this->translate('showWindow.unlimited');
+        $showFrom = $this->formatDate($notification->getShowFrom()) ?? $this->translate('showWindow.immediate');
+        $showUntil = $this->formatDate($notification->getShowUntil()) ?? $this->translate('showWindow.unlimited');
         return $showFrom . ' – ' . $showUntil;
     }
 

@@ -66,6 +66,7 @@ class NotificationApiController extends ActionController
     {
         $data = $this->notificationService->getActiveNotificationsForCurrentUser($includeDismissed);
         $data['translations'] = $this->getPluginTranslations();
+        $data['locale'] = $this->getInterfaceLanguage();
         $this->view->assign('value', $data);
     }
 
