@@ -13,7 +13,7 @@ Admin-managed backend notifications for Neos CMS editors.
 - **Content module plugin** — bell icon badge with unread count, slide-out notification panel with accordion layout
 - **Mark all read** — editors can mark all notifications as read at once
 - **Security** — role-based access: admins manage notifications and upload images, editors can only read/dismiss
-- **i18n** — Dutch and English translations
+- **i18n** — Dutch, German and English translations
 
 ## Requirements
 
@@ -59,7 +59,7 @@ Classes/
 Resources/
 ├── Private/
 │   ├── Fusion/Backend/                              # Index (list + filters + pagination) and Form (editor + preview)
-│   └── Translations/                                # Dutch (nl) and English (en) XLIFF
+│   └── Translations/                                # Dutch (nl), German (de) and English (en) XLIFF
 └── Public/
     ├── JavaScript/Module/Module.js                  # Markdown editor with toolbar and image upload
     ├── JavaScript/NotificationPlugin/Plugin.js      # Content module badge and slide-out panel
