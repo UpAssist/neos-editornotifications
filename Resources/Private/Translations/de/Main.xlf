@@ -1,0 +1,152 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xliff version="1.2" xmlns="urn:oasis:names:tc:xliff:document:1.2">
+  <file original="" product-name="UpAssist.Neos.EditorNotifications" source-language="de" datatype="plaintext">
+    <body>
+      <!-- Module -->
+      <trans-unit id="module.label"><source>Benachrichtigungen für Redakteure</source></trans-unit>
+      <trans-unit id="module.description"><source>Backend-Benachrichtigungen für Redakteure verwalten</source></trans-unit>
+
+      <!-- Filters -->
+      <trans-unit id="filter.active"><source>Aktiv</source></trans-unit>
+      <trans-unit id="filter.scheduled"><source>Geplant</source></trans-unit>
+      <trans-unit id="filter.draft"><source>Entwürfe</source></trans-unit>
+      <trans-unit id="filter.expired"><source>Abgelaufen</source></trans-unit>
+      <trans-unit id="filter.archived"><source>Archiv</source></trans-unit>
+
+      <!-- Status labels -->
+      <trans-unit id="status.draft"><source>Entwurf</source></trans-unit>
+      <trans-unit id="status.archived"><source>Archiviert</source></trans-unit>
+      <trans-unit id="status.scheduled"><source>Geplant</source></trans-unit>
+      <trans-unit id="status.expired"><source>Abgelaufen</source></trans-unit>
+      <trans-unit id="status.published"><source>Veröffentlicht</source></trans-unit>
+
+      <!-- Status hints -->
+      <trans-unit id="statusHint.draft"><source>Für Redakteure nicht sichtbar</source></trans-unit>
+      <trans-unit id="statusHint.archived"><source>Nicht mehr sichtbar</source></trans-unit>
+      <trans-unit id="statusHint.scheduled"><source>Sichtbar ab {0}</source></trans-unit>
+      <trans-unit id="statusHint.expired"><source>Sichtbarkeit endete am {0}</source></trans-unit>
+      <trans-unit id="statusHint.published"><source>Für Redakteure sichtbar</source></trans-unit>
+      <trans-unit id="statusHint.notPublished"><source>Noch nicht veröffentlicht</source></trans-unit>
+
+      <!-- Flash messages -->
+      <trans-unit id="flash.created"><source>Benachrichtigung gespeichert.</source></trans-unit>
+      <trans-unit id="flash.updated"><source>Benachrichtigung aktualisiert.</source></trans-unit>
+      <trans-unit id="flash.createdAndPublished"><source>Benachrichtigung gespeichert und veröffentlicht.</source></trans-unit>
+      <trans-unit id="flash.published"><source>Benachrichtigung veröffentlicht.</source></trans-unit>
+      <trans-unit id="flash.unpublished"><source>Veröffentlichung zurückgezogen.</source></trans-unit>
+      <trans-unit id="flash.archived"><source>Benachrichtigung archiviert.</source></trans-unit>
+      <trans-unit id="flash.deleted"><source>Benachrichtigung gelöscht.</source></trans-unit>
+      <trans-unit id="flash.cannotDeleteActive"><source>Aktive Benachrichtigungen können nicht gelöscht werden. Archivieren Sie die Benachrichtigung zuerst.</source></trans-unit>
+
+      <!-- Validation -->
+      <trans-unit id="validation.titleRequired"><source>Titel ist erforderlich.</source></trans-unit>
+      <trans-unit id="validation.showUntilBeforeShowFrom"><source>„Anzeigen bis“ muss später sein als „Anzeigen ab“.</source></trans-unit>
+
+      <!-- Index page -->
+      <trans-unit id="index.title"><source>Redakteurs-Benachrichtigungen</source></trans-unit>
+      <trans-unit id="index.newButton"><source>Neue Benachrichtigung</source></trans-unit>
+      <trans-unit id="index.helpAriaLabel"><source>Erklärung zu „Abgelaufen“ und „Archiv“</source></trans-unit>
+      <trans-unit id="index.helpText"><source>„Abgelaufene“ Benachrichtigungen sind automatisch nicht mehr aktiv, weil ihre Sichtbarkeit geendet hat. „Archiv“ ist für Benachrichtigungen, die Sie als Admin manuell schließen.</source></trans-unit>
+      <trans-unit id="index.itemCount"><source>{0} Einträge</source></trans-unit>
+      <trans-unit id="index.empty"><source>Keine Benachrichtigungen für diesen Filter gefunden.</source></trans-unit>
+
+      <!-- Table headers -->
+      <trans-unit id="table.title"><source>Titel</source></trans-unit>
+      <trans-unit id="table.status"><source>Status</source></trans-unit>
+      <trans-unit id="table.publication"><source>Veröffentlichung</source></trans-unit>
+      <trans-unit id="table.visibility"><source>Sichtbarkeit</source></trans-unit>
+      <trans-unit id="table.createdAt"><source>Erstellt am {0}</source></trans-unit>
+
+      <!-- Actions -->
+      <trans-unit id="action.edit"><source>Bearbeiten</source></trans-unit>
+      <trans-unit id="action.archive"><source>Archivieren</source></trans-unit>
+      <trans-unit id="action.delete"><source>Löschen</source></trans-unit>
+
+      <!-- Form page -->
+      <trans-unit id="form.newTitle"><source>Neue Benachrichtigung</source></trans-unit>
+      <trans-unit id="form.backButton"><source>Zurück zur Übersicht</source></trans-unit>
+      <trans-unit id="form.validationHeading"><source>Bitte Formular prüfen</source></trans-unit>
+
+      <!-- Form fields -->
+      <trans-unit id="field.title"><source>Titel</source></trans-unit>
+      <trans-unit id="field.titleHelp"><source>Verwenden Sie einen kurzen, prägnanten Titel, damit Redakteure sofort sehen, worum es geht.</source></trans-unit>
+      <trans-unit id="field.titlePlaceholder"><source>Beispiel: Neuer Review-Workflow ist live</source></trans-unit>
+      <trans-unit id="field.content"><source>Nachricht</source></trans-unit>
+      <trans-unit id="field.contentHelp"><source>Schreiben Sie in Markdown. Nutzen Sie **fett**, *kursiv*, - für Listen, [Text](URL) für Links.</source></trans-unit>
+      <trans-unit id="field.contentPlaceholder"><source>Beginnen Sie mit einer kurzen Zusammenfassung. Ergänzen Sie dann optional Aufzählungen, Links oder Screenshots.
+
+Markdown: **fett**, *kursiv*, - Liste, [Text](URL)</source></trans-unit>
+      <trans-unit id="field.markdownHelp"><source>Markdown: **fett**, *kursiv*, - Liste, 1. Nummerierung, [Text](URL), ![Alt](URL)</source></trans-unit>
+      <trans-unit id="field.showFrom"><source>Anzeigen ab</source></trans-unit>
+      <trans-unit id="field.showFromHelp"><source>Leer lassen, damit die Benachrichtigung sofort nach dem Veröffentlichen sichtbar ist.</source></trans-unit>
+      <trans-unit id="field.showUntil"><source>Anzeigen bis</source></trans-unit>
+      <trans-unit id="field.showUntilHelp"><source>Optional. Nützlich für temporäre Ankündigungen oder Release-Updates.</source></trans-unit>
+
+      <!-- Toolbar -->
+      <trans-unit id="toolbar.bold"><source>Fett (Strg+B)</source></trans-unit>
+      <trans-unit id="toolbar.boldShort"><source>Fett</source></trans-unit>
+      <trans-unit id="toolbar.italic"><source>Kursiv (Strg+I)</source></trans-unit>
+      <trans-unit id="toolbar.italicShort"><source>Kursiv</source></trans-unit>
+      <trans-unit id="toolbar.unorderedList"><source>Aufzählungsliste</source></trans-unit>
+      <trans-unit id="toolbar.orderedList"><source>Nummerierte Liste</source></trans-unit>
+      <trans-unit id="toolbar.insertLink"><source>Link einfügen</source></trans-unit>
+      <trans-unit id="toolbar.uploadImage"><source>Bild hochladen</source></trans-unit>
+
+      <!-- Buttons -->
+      <trans-unit id="button.saveDraft"><source>Als Entwurf speichern</source></trans-unit>
+      <trans-unit id="button.saveAndPublish"><source>Speichern &amp; veröffentlichen</source></trans-unit>
+      <trans-unit id="button.delete"><source>Löschen</source></trans-unit>
+      <trans-unit id="button.updateDraft"><source>Entwurf aktualisieren</source></trans-unit>
+      <trans-unit id="button.publish"><source>Veröffentlichen</source></trans-unit>
+      <trans-unit id="button.unpublish"><source>Veröffentlichung zurückziehen</source></trans-unit>
+      <trans-unit id="button.archive"><source>Archivieren</source></trans-unit>
+      <trans-unit id="button.update"><source>Aktualisieren</source></trans-unit>
+
+      <!-- Confirm dialogs -->
+      <trans-unit id="confirm.delete"><source>Dieser Entwurf wird endgültig gelöscht. Sind Sie sicher?</source></trans-unit>
+      <trans-unit id="confirm.unpublish"><source>Die Benachrichtigung wird wieder zum Entwurf und ist für Redakteure nicht mehr sichtbar. Fortfahren?</source></trans-unit>
+      <trans-unit id="confirm.archive"><source>Die Benachrichtigung wird archiviert und ist nicht mehr sichtbar. Fortfahren?</source></trans-unit>
+      <trans-unit id="confirm.default"><source>Sind Sie sicher?</source></trans-unit>
+
+      <!-- Preview -->
+      <trans-unit id="preview.title"><source>Vorschau</source></trans-unit>
+      <trans-unit id="preview.description"><source>So wird die Benachrichtigung für Redakteure aussehen.</source></trans-unit>
+      <trans-unit id="preview.defaultMeta"><source>Noch nicht geplant</source></trans-unit>
+      <trans-unit id="preview.defaultTitle"><source>Noch kein Titel eingegeben</source></trans-unit>
+      <trans-unit id="preview.heading"><source>Hier erscheint Ihre Nachricht</source></trans-unit>
+      <trans-unit id="preview.text"><source>Schreiben Sie Markdown in das Textfeld links.</source></trans-unit>
+      <trans-unit id="preview.visibleFromTo"><source>Sichtbar von {0} bis {1}</source></trans-unit>
+      <trans-unit id="preview.visibleFrom"><source>Sichtbar ab {0}</source></trans-unit>
+      <trans-unit id="preview.visibleUntil"><source>Sichtbar bis {0}</source></trans-unit>
+
+      <!-- Module.js -->
+      <trans-unit id="js.enterUrl"><source>Geben Sie eine URL ein</source></trans-unit>
+      <trans-unit id="js.linkText"><source>Linktext</source></trans-unit>
+      <trans-unit id="js.uploadFailed"><source>Upload fehlgeschlagen: {0}</source></trans-unit>
+      <trans-unit id="js.unknownError"><source>unbekannter Fehler</source></trans-unit>
+      <trans-unit id="js.uploadNetworkError"><source>Upload fehlgeschlagen: Netzwerkfehler</source></trans-unit>
+
+      <!-- Plugin.js -->
+      <trans-unit id="plugin.notifications"><source>Benachrichtigungen</source></trans-unit>
+      <trans-unit id="plugin.close"><source>Schließen</source></trans-unit>
+      <trans-unit id="plugin.unreadCount"><source>{0} ungelesen</source></trans-unit>
+      <trans-unit id="plugin.empty"><source>Zurzeit gibt es keine Benachrichtigungen.</source></trans-unit>
+      <trans-unit id="plugin.dismiss"><source>Ausblenden</source></trans-unit>
+      <trans-unit id="plugin.markUnread"><source>Als ungelesen markieren</source></trans-unit>
+      <trans-unit id="plugin.showHidden"><source>Ausgeblendete Benachrichtigungen anzeigen</source></trans-unit>
+      <trans-unit id="plugin.hideHidden"><source>Ausgeblendete Benachrichtigungen verbergen</source></trans-unit>
+      <trans-unit id="plugin.newNotification"><source>{0} neue Benachrichtigung</source></trans-unit>
+      <trans-unit id="plugin.newNotifications"><source>{0} neue Benachrichtigungen</source></trans-unit>
+      <trans-unit id="plugin.clickToView"><source>Zum Ansehen klicken</source></trans-unit>
+      <trans-unit id="plugin.unhide"><source>Wieder einblenden</source></trans-unit>
+      <trans-unit id="plugin.delete"><source>Löschen</source></trans-unit>
+      <trans-unit id="plugin.confirmDelete"><source>Diese Benachrichtigung endgültig löschen?</source></trans-unit>
+      <trans-unit id="plugin.markRead"><source>Als gelesen markieren</source></trans-unit>
+      <trans-unit id="plugin.markAllRead"><source>Alle als gelesen markieren</source></trans-unit>
+
+      <!-- Show window -->
+      <trans-unit id="showWindow.immediate"><source>sofort</source></trans-unit>
+      <trans-unit id="showWindow.unlimited"><source>unbegrenzt</source></trans-unit>
+    </body>
+  </file>
+</xliff>
